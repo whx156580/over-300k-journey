@@ -1,0 +1,25 @@
+# Git Keep files
+**/.gitkeep
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Local reports and outputs
+common/tools/salary_report.md
+common/tools/anki_interview_bank.csv
+common/tools/capability_radar.png
+common/tools/knowledge_base.pdf
+
+# GitHub Actions (CI/CD)
+.github/
+

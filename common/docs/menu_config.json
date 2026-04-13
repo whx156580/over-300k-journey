@@ -1,0 +1,79 @@
+{
+  "project_name": "30W+ 复合型人才知识库",
+  "version": "1.1.0",
+  "navigation": [
+    {
+      "title": "🛡️ 软件测试模块",
+      "path": "/testing",
+      "children": [
+        { 
+          "title": "UI 自动化", 
+          "path": "/testing/ui",
+          "stacks": ["playwright", "selenium"]
+        },
+        { 
+          "title": "接口自动化", 
+          "path": "/testing/api",
+          "stacks": ["pytest", "rest-assured"]
+        },
+        { 
+          "title": "移动端测试", 
+          "path": "/testing/mobile",
+          "stacks": ["appium"]
+        },
+        { 
+          "title": "性能压测", 
+          "path": "/testing/performance",
+          "stacks": ["k6", "jmeter"]
+        },
+        { 
+          "title": "AI 评测", 
+          "path": "/testing/ai-eval",
+          "stacks": ["ragas", "deepeval"]
+        },
+        { "title": "测试策略", "path": "/testing/strategy" }
+      ]
+    },
+    {
+      "title": "🎨 前端开发模块",
+      "path": "/frontend",
+      "children": [
+        { "title": "核心框架", "path": "/frontend/frameworks" },
+        { "title": "工程化", "path": "/frontend/engineering" },
+        { "title": "性能监控", "path": "/frontend/performance" }
+      ]
+    },
+    {
+      "title": "⚙️ 后端开发模块",
+      "path": "/backend",
+      "children": [
+        { "title": "分布式系统", "path": "/backend/distributed" },
+        { "title": "数据库实战", "path": "/backend/database" },
+        { "title": "系统设计", "path": "/backend/system-design" }
+      ]
+    },
+    {
+      "title": "🤖 AI 开发模块",
+      "path": "/ai",
+      "children": [
+        { "title": "LLM & Agent", "path": "/ai/llm-agent" },
+        { "title": "MLOps", "path": "/ai/mlops" },
+        { "title": "数据工程", "path": "/ai/dataset" }
+      ]
+    },
+    {
+      "title": "🛠️ 公共资源",
+      "path": "/common",
+      "children": [
+        { "title": "Checklists", "path": "/common/checklists" },
+        { "title": "代码片段", "path": "/common/snippets" },
+        { "title": "提效工具", "path": "/common/tools" },
+        { "title": "核心文档", "path": "/common/docs" }
+      ]
+    }
+  ],
+  "meta": {
+    "naming_convention": "snake_case",
+    "structure_logic": "5x5 Matrix (Module -> Tech Area -> Tech Stack -> Level -> Item)"
+  }
+}
