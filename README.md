@@ -107,6 +107,6 @@
 - **贡献指南**: [知识库录入标准](./common/docs/contribution_guide.md)
 
 ---
-© 2026 迈向 30W+ 复合型人才之路 | [GitHub](https://github.com/your-username/over-300k-journey)
+© 2026 迈向 30W+ 复合型人才之路 | [GitHub](https://github.com/whx156580/over-300k-journey)
 
 
