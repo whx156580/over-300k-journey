@@ -4,6 +4,7 @@
 ![AI](https://img.shields.io/badge/AI-LLM_Evaluation-orange)
 ![License](https://img.shields.io/badge/Content-Knowledge_Base-green)
 
+
 > **不仅是笔记，更是通往高级/专家级工程师的职业进化引擎。**
 
 ---
@@ -13,6 +14,7 @@
 - **测试策略**: [全链路测试计划](./testing/strategy/test_strategy.md)
 - **质量门禁**: 强制要求通过率 100%，行覆盖率 ≥ 80%，禁止合并含 High 缺陷代码。
 - **自动化运行**: 运行 `pytest` 执行单元/集成测试，运行 `python scripts/check_quality_gate.py` 进行门禁自查。
+- **测试报告**: 详细记录测试用例、执行结果、异常信息。
 
 ---
 
@@ -21,13 +23,13 @@
 2. **安装依赖**: 执行 `pip install -r requirements.txt -i http://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn` 安装。
 3. **能力评估**: 阅读 [30W+ 复合型人才模型](./common/docs/capability_model.md) 并使用 [自评脚本](./common/tools/gen_radar.py) 生成您的能力雷达图。
 4. **按需学习**: 根据雷达图短板，进入 `testing/` 或 `frontend/backend/ai/` 模块进行针对性实战。
+5. **持续集成**: 配置 `.github/workflows/ci.yml` 自动化测试与质量门禁。
 
 ---
 
 ## 🏗️ 项目目录结构 (Project Structure)
 
-> **架构升级说明**: 本项目已从旧版散乱目录迁移至全新的五大核心模块架构。旧目录已全部合并至对应模块中。
-> **CI/CD 说明**: `.github/` 目录下的自动化工作流配置文件已本地化，不随仓库分发。
+
 
 ```text
 .
@@ -65,6 +67,7 @@
 - **.gitkeep**: 所有空目录必须包含 `.gitkeep` 文件，以确保目录结构能被 Git 追踪。
 - **初始化**: 若本地目录缺失或需要重置，请执行 `python scripts/init_dirs.py`。
 - **标准化**: 每一级子目录均应包含 `README.md` 说明文件。
+- **模块结构**: 模块目录结构务必与 README.md 文件保持一致，确保模块结构清晰、一致。
 
 ---
 
@@ -78,6 +81,7 @@
 | **AI 开发** | 落地 AI 应用，通过智能化手段赋能业务与效率 | AI Agent、RAG 知识库、智能化测试工具 |
 | **运维脚本** | 提供项目结构维护、环境补全等自动化能力 | [init_dirs.py](./scripts/init_dirs.py) |
 
+
 ---
 
 ## 🛠️ 全景技术索引 (Knowledge Index)
@@ -88,6 +92,10 @@
 | **前端开发** | [核心框架](./frontend/frameworks) \| [工程化](./frontend/engineering) \| [性能优化](./frontend/performance) | 微前端, 视觉回归 |
 | **后端开发** | [分布式系统](./backend/distributed) \| [数据库实战](./backend/database) \| [架构设计](./backend/system-design) | K8s 治理, DDD |
 | **AI 领域** | [LLM & Agent](./ai/llm-agent) \| [MLOps](./ai/mlops) \| [数据管道](./ai/dataset) | 模型微调, 智能化自愈 |
+| **自动化运维** | [CI/CD](./common/engineering/ci-cd) \| [静态分析](./common/engineering/static-analysis) \| [代码质量](./common/engineering/code-quality) | 持续集成, 持续交付 |
+| **其他工具** | [自研工具链](./common/tools) \| [规范文档](./common/docs) \| [能力评估](./common/docs/capability_model.md) | 测试报告, 测试质量, 测试策略 |
+| **质量门禁** | [门禁自查](./common/tools/check_quality_gate.py) \| [质量度量看板](./common/tools/gen_radar.py) | 测试报告, 测试质量, 测试策略 |
+| **测试报告** | [测试报告](./common/tools/gen_report.py) \| [测试质量](./common/tools/gen_quality.py) \| [测试策略](./common/tools/gen_strategy.py) | 测试报告, 测试质量, 测试策略 |
 
 ---
 
@@ -96,17 +104,27 @@
 - **输出**: 在对应目录下新增笔记，并运行 [gen_pdf.py](./common/tools/gen_pdf.py) 导出为个人资产。
 - **内化**: 每周末通过 [gen_anki.py](./common/tools/gen_anki.py) 导出题库，利用碎片时间完成记忆闭环。
 
+
+
 ---
 
 ## 🗺️ 菜单导航系统 (Menu System)
 
 本项目配套完整的菜单导航，详见配置文件：[menu_config.json](./common/docs/menu_config.json)
 
-- **能力评估**: [30W+ 复合型人才模型](./common/docs/capability_model.md)
-- **实战练习**: [50+ 评估题库](./common/docs/assessment_bank.md)
-- **贡献指南**: [知识库录入标准](./common/docs/contribution_guide.md)
+- **能力评估**: [30W+ 复合型人才模型](./common/docs/capability_model.md) & [能力雷达图](./common/tools/gen_radar.py)
+- **实战练习**: [50+ 评估题库](./common/docs/assessment_bank.md) & [知识复利策略](./common/tools/gen_pdf.py)
+- **贡献指南**: [知识库录入标准](./common/docs/contribution_guide.md) & [代码规范](./common/docs/code_style.md)
+- **项目文档**: [项目结构与规范](./common/docs/project_structure.md) & [项目评估](./common/docs/project_assessment.md)
+
 
 ---
 © 2026 迈向 30W+ 复合型人才之路 | [GitHub](https://github.com/whx156580/over-300k-journey)
-
-
+🚀 30W+ 复合型人才模型，欢迎大家参与完善！
+📚 项目文档，欢迎大家参与完善！
+🛠️ 项目评估，欢迎大家参与完善！
+📚 知识库录入标准，欢迎大家参与完善！
+📝 代码规范，欢迎大家参与完善！
+🤝 贡献指南，欢迎大家参与完善！
+🔥 菜单导航系统，欢迎大家参与完善！
+🚀 后续完善成一个在线学习项目，大家可以在项目中学习到最新的技术知识。
