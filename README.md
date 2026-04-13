@@ -8,6 +8,14 @@
 
 ---
 
+## 🛡️ 测试体系与质量红线 (Testing System)
+本项目建立了严密的自动化测试体系，确保每一行代码均经过严格校验：
+- **测试策略**: [全链路测试计划](./testing/strategy/test_strategy.md)
+- **质量门禁**: 强制要求通过率 100%，行覆盖率 ≥ 80%，禁止合并含 High 缺陷代码。
+- **自动化运行**: 运行 `pytest` 执行单元/集成测试，运行 `python scripts/check_quality_gate.py` 进行门禁自查。
+
+---
+
 ## 🚀 快速开始 (Quick Start)
 1. **环境初始化**: 运行 `python scripts/init_dirs.py` 自动补全本地物理目录及 `.gitkeep` 占位文件。
 2. **安装依赖**: 执行 `pip install -r requirements.txt -i http://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn` 安装。

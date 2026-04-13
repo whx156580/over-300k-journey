@@ -8,6 +8,7 @@
 本项目按技术栈对代码进行隔离管理：
 
 - **[playwright/](./playwright)**: Playwright 脚本、POM 模型与环境配置。
+    - 📄 [环境搭建与初探 (Basic)](./playwright/playwright_env_setup.md)
 - **[selenium/](./selenium)**: Selenium 脚本、驱动管理与传统测试方案。
 
 ## 📅 计划安排
