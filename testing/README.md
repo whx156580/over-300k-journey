@@ -1,32 +1,50 @@
-# 🛡️ 软件测试模块 (Software Testing)
+# 🛡️ 软件测试模块
 
-> **核心目标**: 建立全链路质量保障体系，实现质量左移与右移。
-
-## 📁 目录结构与技术栈 (Structure & Tech Stacks)
-
-本项目采用三级目录管理，确保不同技术栈的实现隔离、结构清晰：
-
-### 🎨 UI 自动化测试 (UI Testing)
-- **[ui/playwright/](./ui/playwright)**: Playwright 测试脚本、Page Object Model 与配置。
-- **[ui/selenium/](./ui/selenium)**: Selenium WebDriver 脚本、驱动配置与测试数据。
-
-### ⚙️ 接口自动化测试 (API Testing)
-- **[api/pytest/](./api/pytest)**: 基于 Pytest 的接口自动化框架与插件。
-- **[api/rest-assured/](./api/rest-assured)**: 基于 Rest-Assured 的 Java 接口测试方案。
-
-### 📱 移动端测试 (Mobile Testing)
-- **[mobile/appium/](./mobile/appium)**: Appium 自动化脚本、设备配置与多端兼容。
-
-### ⚡ 性能测试 (Performance Testing)
-- **[performance/k6/](./performance/k6)**: K6 性能压测脚本与指标监控。
-- **[performance/jmeter/](./performance/jmeter)**: JMeter 压测方案与结果分析。
-
-### 🤖 AI 模型与评测 (AI Evaluation)
-- **[ai-eval/ragas/](./ai-eval/ragas)**: RAG 应用的自动化评估。
-- **[ai-eval/deepeval/](./ai-eval/deepeval)**: 深度学习模型评测实践。
-
-### 🧠 测试策略 (Testing Strategy)
-- **[strategy/](./strategy)**: 测试策略、缺陷分析、质量度量看板。
+> 这里承接 UI 自动化、接口测试、性能测试、移动端测试、AI 评测和测试策略六大知识域。
 
 ---
-[返回首页](../README.md) | [查看菜单](../common/docs/menu_config.json)
+
+## 导航入口
+
+- 自动汇总首页: [knowledge_hub.md](../common/docs/indexes/knowledge_hub.md)
+- 搜索入口: `python scripts/search_knowledge.py <关键词>`
+- 写作模板: [template.md](../common/docs/template.md)
+- 测试策略总览: [test_strategy.md](./strategy/test_strategy.md)
+
+---
+
+## 模块索引
+
+| 知识域 | 入口 | 已补充内容 |
+| :--- | :--- | :--- |
+| UI 自动化 | [ui/README.md](./ui/README.md) | 选择器与等待、网络 Mock、登录态复用 |
+| 接口测试 | [api/README.md](./api/README.md) | 契约测试、Schema 校验、鉴权测试 |
+| 性能测试 | [performance/README.md](./performance/README.md) | 基础压测、场景建模、容量预估 |
+| 移动端测试 | [mobile/README.md](./mobile/README.md) | 定位策略、会话管理、稳定性设计 |
+| AI 评测 | [ai-eval/README.md](./ai-eval/README.md) | RAG 基础、检索指标、黄金测试集 |
+| 测试策略 | [strategy/README.md](./strategy/README.md) | 风险驱动、分层回归、质量门禁 |
+
+---
+
+## 推荐学习顺序
+
+1. 先看 [strategy/README.md](./strategy/README.md)，建立测试分层、风险和门禁意识。
+2. 再补 UI、API、性能、移动端的单项能力。
+3. 最后进入 [ai-eval/README.md](./ai-eval/README.md)，把传统测试能力延伸到 LLM / RAG 评测。
+
+---
+
+## 如何继续往里加内容
+
+1. 找到对应目录，例如 `testing/ui/playwright/advanced/`
+2. 复制 [template.md](../common/docs/template.md) 的结构
+3. 补齐标准元数据
+4. 写完后运行:
+
+```bash
+python scripts/build_knowledge_index.py
+python scripts/search_knowledge.py playwright
+```
+
+---
+[返回首页](../README.md) | [查看索引说明](../common/docs/indexes/README.md)

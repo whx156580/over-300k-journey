@@ -1,19 +1,33 @@
-# ⚙️ 接口自动化测试 (API-Testing)
+# ⚙️ 接口自动化测试
 
-> **所属模块**: 软件测试模块 (Software Testing)
-> **专注领域**: 接口自动化、全链路压测、中间件稳定性。
-
-## 🛠️ 技术栈分类 (Tech Stacks)
-
-- **[pytest/](./pytest)**: Python 接口自动化测试。
-- **[rest-assured/](./rest-assured)**: Java 接口自动化测试。
-
-## 📅 计划安排
-
-### 第一阶段：接口与数据库核心 (Day 1-30)
-- **Day 1-10**: 接口契约测试 (Contract Testing)、Pytest 插件化开发。
-- **Day 11-20**: 异步 API 压测与分布式事务一致性校验。
-- **Day 21-30**: 容器化数据库 (Docker) 快速拉起与数据回滚机制。
+> 聚焦接口契约、状态码与业务断言、测试夹具设计、环境隔离和服务协作验证。
 
 ---
-[返回首页](../../README.md) | [查看菜单](../../common/docs/menu_config.json)
+
+## 入口索引
+
+- Pytest: [pytest/](./pytest)
+- Rest-Assured: [rest-assured/](./rest-assured)
+- 搜索示例: `python scripts/search_knowledge.py contract --area api`
+
+---
+
+## 已收录内容
+
+| 标题 | 技术栈 | 层级 | 路径 |
+| :--- | :--- | :--- | :--- |
+| 使用 Pytest 做接口契约测试基础 | `pytest` | `basics` | [api_contract_testing_with_pytest.md](./pytest/basics/api_contract_testing_with_pytest.md) |
+| 使用 Pytest 做 OpenAPI Schema 校验 | `pytest` | `advanced` | [openapi_schema_validation_with_pytest.md](./pytest/advanced/openapi_schema_validation_with_pytest.md) |
+| 接口鉴权与签名测试设计 | `pytest` | `advanced` | [authentication_and_signature_testing.md](./pytest/advanced/authentication_and_signature_testing.md) |
+
+---
+
+## 后续推荐补充
+
+- 异步接口验证
+- 幂等性与重试策略
+- 测试数据管理
+- 契约回归流水线
+
+---
+[返回测试模块](../README.md)
