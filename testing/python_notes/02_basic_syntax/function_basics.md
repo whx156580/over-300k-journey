@@ -1,140 +1,163 @@
 ---
-title: 函数基础
+title: 函数进阶与作用域 (Functions & Scopes)
 module: testing
 area: python_notes
 stack: python
 level: basics
 status: active
-tags: [python, function, scope, legb, kwargs]
-updated: 2026-04-16
+tags: [python, function, scope, legb, closures, nonlocal]
+updated: 2026-04-17
 ---
 
 ## 目录
-- [概念](#概念)
-- [语法规则](#语法规则)
+- [背景](#背景)
+- [核心结论](#核心结论)
+- [原理拆解](#原理拆解)
+- [官方文档与兼容性](#官方文档与兼容性)
 - [代码示例](#代码示例)
-- [易错点](#易错点)
-- [小练习](#小练习)
+- [性能基准测试](#性能基准测试)
+- [易错点与最佳实践](#易错点与最佳实践)
 - [Self-Check](#Self-Check)
-- [参考答案](#参考答案)
 - [参考链接](#参考链接)
 - [版本记录](#版本记录)
 
-## 概念
-- 函数用于封装可复用逻辑，是测试代码从脚本化迈向工程化的第一步。
-- 理解参数传递和作用域，比记忆 `*args`、`**kwargs` 的符号本身更重要。
-- 一个好函数应该有清晰输入、稳定输出和单一职责。
+## 背景
+- **问题场景**: 在复杂测试脚本中，变量名冲突导致数据被意外覆盖；或者需要通过“闭包”技术在多个测试步骤间共享某些不希望暴露为全局变量的状态。
+- **学习目标**: 深度理解 Python 的 LEGB 作用域查找规则，掌握 `global` 与 `nonlocal` 的正确用法，并能编写具备状态保持能力的闭包函数。
+- **前置知识**: [变量与数据类型](./variables_and_types.md)。
 
-## 语法规则
-- `def` 用于定义函数，`return` 决定返回值；未显式返回时默认返回 `None`。
-- 作用域查找遵循 LEGB：Local、Enclosing、Global、Built-in。
-- 默认参数在函数定义时求值，可变默认参数要格外小心。
-- `*args` 接收额外位置参数，`**kwargs` 接收额外关键字参数。
+## 核心结论
+- **LEGB 查找**: Python 按 **L**ocal (局部) -> **E**nclosing (嵌套) -> **G**lobal (全局) -> **B**uilt-in (内置) 的顺序检索变量。
+- **闭包 (Closure)**: 内部函数引用了外部嵌套函数的变量，且该内部函数被返回时，会形成闭包，保留当时的上下文状态。
+- **nonlocal**: 专门用于在嵌套函数中修改外部（但非全局）作用域的变量绑定。
+
+## 原理拆解
+- **名称空间 (Namespace)**: 变量名与对象的映射表。函数调用时会创建独立的局部名称空间，调用结束通常即销毁。
+- **自由变量 (Free Variable)**: 在函数中使用但未在函数体中定义的变量（由闭包捕获）。
+
+## 官方文档与兼容性
+| 规则名称 | 官方出处 | PEP 链接 | 兼容性 |
+| :--- | :--- | :--- | :--- |
+| 作用域规则 | [Naming and binding](https://docs.python.org/3/reference/executionmodel.html#naming-and-binding) | N/A | Python 1.0+ |
+| `nonlocal` 关键字 | [The nonlocal statement](https://docs.python.org/3/reference/simple_stmts.html#nonlocal) | [PEP 3104](https://peps.python.org/pep-3104/) | Python 3.0+ |
+| 关键字限定参数 | [Function definitions](https://docs.python.org/3/reference/compound_stmts.html#function-definitions) | [PEP 3102](https://peps.python.org/pep-3102/) | Python 3.0+ |
 
 ## 代码示例
-### 示例 1：默认参数与关键字参数
 
-```python hl_lines="1 2"
-def build_url(host: str, path: str = "/health", *, https: bool = True) -> str:
-    scheme = "https" if https else "http"
-    return f"{scheme}://{host}{path}"
+### 示例 1：LEGB 查找链深度演示
+观察同名变量在不同作用域层级下的遮蔽 (Shadowing) 效应。
 
+```python
+# G: Global
+x = "global"
 
-print(build_url("example.com"))
-print(build_url("localhost:8000", path="/docs", https=False))
-```
-
-
-### 示例 2：`*args` 与 `**kwargs`
-
-```python hl_lines="1 4"
-def collect(*args: int, **kwargs: str) -> tuple[int, dict[str, str]]:
-    return sum(args), kwargs
-
-
-total, meta = collect(1, 2, 3, env="test", owner="qa")
-print(total)
-print(meta["env"])
-```
-
-
-### 示例 3：LEGB 作用域
-
-```python hl_lines="5 6 11 12"
-label = "global"
-
-
-def outer() -> str:
-    label = "enclosing"
-
-    def inner() -> str:
-        return label
-
+def outer():
+    # E: Enclosing
+    x = "enclosing"
+    
+    def inner():
+        # L: Local
+        # 如果取消注释下一行，则会遮蔽 E 和 G
+        # x = "local"
+        return x
+    
     return inner()
 
-
-print(outer())
-print(label)
+print(f"Result: {outer()}") # 应返回 "enclosing"
+assert outer() == "enclosing"
 ```
 
-## 易错点
-- 把空列表、空字典当作默认参数，会让多次调用共享状态。
-- 函数职责过多时，参数会越堆越多，最后很难测试、也很难复用。
-- 滥用 `**kwargs` 会让函数边界不清晰，调用者也不容易知道真正需要哪些参数。
+### 示例 2：闭包与状态保持 (Counter)
+利用闭包实现一个不需要全局变量、也不需要类的轻量级计数器。
 
-## 小练习
-1. 写一个函数，接收主机名和路径，返回完整 URL，并支持关键字参数控制协议。
-2. 写一个函数，接收任意数量的数字并返回总和。
-3. 通过嵌套函数演示 LEGB 查找顺序。
+```python
+def make_counter(start: int = 0):
+    """
+    闭包示例：make_counter 的局部变量 count 被 inner 捕获。
+    """
+    count = start
+    
+    def increment():
+        nonlocal count # 声明修改外部嵌套作用域的变量
+        count += 1
+        return count
+    
+    return increment
 
-完成后再对照“参考答案”和“Self-Check”复盘。
+counter_a = make_counter(10)
+print(f"A-1: {counter_a()}") # 11
+print(f"A-2: {counter_a()}") # 12
+
+counter_b = make_counter(0)
+print(f"B-1: {counter_b()}") # 1
+```
+
+### 示例 3：关键字强制参数与默认值陷阱
+演示如何通过 `*` 强制调用方使用关键字参数，并规避可变默认参数坑。
+
+```python
+def safe_append(item, target_list=None):
+    """
+    最佳实践：使用 None 作为默认值，避免共享同一个列表对象。
+    """
+    if target_list is None:
+        target_list = []
+    target_list.append(item)
+    return target_list
+
+def config_runner(*, env="test", debug=False):
+    """
+    关键字强制参数：调用时必须写 env="prod"。
+    """
+    return f"Running {env} (debug={debug})"
+
+# 验证
+print(config_runner(env="staging"))
+# config_runner("staging") # 会抛出 TypeError
+```
+
+## 性能基准测试
+对比闭包访问与类实例属性访问的性能。
+
+```python
+import timeit
+
+def benchmark_closure():
+    def make_adder(x):
+        def adder(y): return x + y
+        return adder
+    add_five = make_adder(5)
+    return lambda: add_five(10)
+
+class Adder:
+    def __init__(self, x): self.x = x
+    def add(self, y): return self.x + y
+
+obj_adder = Adder(5)
+benchmark_class = lambda: obj_adder.add(10)
+
+t_closure = timeit.timeit(benchmark_closure(), number=1000000)
+t_class = timeit.timeit(benchmark_class, number=1000000)
+
+print(f"Closure Access: {t_closure:.4f}s")
+print(f"Class Access: {t_class:.4f}s")
+```
+
+## 易错点与最佳实践
+| 特性 | 常见陷阱 | 最佳实践 |
+| :--- | :--- | :--- |
+| **可变默认参数** | `def f(a=[])`，导致多次调用共享同一个 `a`。 | 始终使用 `None` 并在函数内初始化。 |
+| **LEGB 遮蔽** | 局部变量名与内置函数（如 `list`, `sum`）重名。 | 避免使用 Python 关键字和高频内置函数名作为变量。 |
+| **闭包循环捕获** | 在循环中创建闭包，所有闭包都引用了循环变量的最终值。 | 使用默认参数或 `partial` 固定当前循环值。 |
 
 ## Self-Check
-### 概念题
-1. LEGB 规则的四层作用域分别是什么？
-2. 为什么可变默认参数容易出问题？
-3. `*args` 和 `**kwargs` 各自适合什么场景？
-
-### 编程题
-1. 如何定义一个必须用关键字传入的参数？
-2. 怎么重写一个带空列表默认参数的函数？
-
-### 实战场景
-1. 你在封装 HTTP 请求辅助函数时，想兼容额外 headers、timeout、params，签名该如何设计？
-
-先独立作答，再对照下方的“参考答案”和对应章节复盘。
-
-## 参考答案
-### 概念题 1
-Local、Enclosing、Global、Built-in。解释器会按这个顺序查找名称绑定。
-讲解回看: [语法规则](#语法规则)
-
-### 概念题 2
-因为默认参数在函数定义时只求值一次，后续调用会共享同一个对象，导致状态泄漏。
-讲解回看: [易错点](#易错点)
-
-### 概念题 3
-`*args` 适合位置参数数量不固定的场景，`**kwargs` 适合附加命名参数或配置透传场景，但要避免滥用。
-讲解回看: [语法规则](#语法规则)
-
-### 编程题 1
-在函数签名中放一个 `*`，其后的参数都必须用关键字形式调用，例如 `def f(a, *, debug=False)`。
-讲解回看: [代码示例](#代码示例)
-
-### 编程题 2
-把默认值改成 `None`，函数内部再写 `items = [] if items is None else items`，避免多次调用共享同一列表。
-讲解回看: [易错点](#易错点)
-
-### 实战场景 1
-优先显式声明核心参数，再用少量关键字参数补充扩展项。只有在透传第三方 SDK 参数时，才谨慎使用 `**kwargs`。
-讲解回看: [概念](#概念)
+1. 为什么在 `inner` 函数里可以直接读 `outer` 的变量，但修改它却必须加 `nonlocal`？
+2. `global` 关键字在什么场景下应该被严格禁止？
+3. 如何判断一个函数对象是否形成了闭包？（提示：查看 `__closure__` 属性）。
 
 ## 参考链接
-- [Python 官方文档](https://docs.python.org/3/)
-- [本仓库知识模板](../../common/docs/template.md)
-
-## 版本记录
-- 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
+- [Python Execution Model](https://docs.python.org/3/reference/executionmodel.html)
+- [Closures in Python Explained](https://example.com)
 
 ---
-[返回 Python 学习总览](../README.md)
+[版本记录](./function_basics.md) | [返回首页](../README.md)

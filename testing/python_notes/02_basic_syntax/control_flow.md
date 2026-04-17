@@ -1,134 +1,163 @@
 ---
-title: 流程控制
+title: 流程控制深度解析 (Flow Control)
 module: testing
 area: python_notes
 stack: python
 level: basics
 status: active
-tags: [python, flow-control, if, while, for]
-updated: 2026-04-16
+tags: [python, flow-control, match-case, for-else, loops, performance]
+updated: 2026-04-17
 ---
 
 ## 目录
-- [概念](#概念)
-- [语法规则](#语法规则)
+- [背景](#背景)
+- [核心结论](#核心结论)
+- [原理拆解](#原理拆解)
+- [官方文档与兼容性](#官方文档与兼容性)
 - [代码示例](#代码示例)
-- [易错点](#易错点)
-- [小练习](#小练习)
+- [性能基准测试](#性能基准测试)
+- [易错点与最佳实践](#易错点与最佳实践)
 - [Self-Check](#Self-Check)
-- [参考答案](#参考答案)
 - [参考链接](#参考链接)
 - [版本记录](#版本记录)
 
-## 概念
-- 流程控制决定代码按什么条件执行、重复执行以及何时提前退出。
-- 写流程控制时，关键不是“语法会不会写”，而是条件边界是否清晰、循环是否可终止。
-- `for-else` 与 `while-else` 是 Python 里常被忽略但非常实用的结构。
+## 背景
+- **问题场景**: 自动化测试需要根据接口返回的状态码执行不同的断言分支；或者需要不断轮询（Polling）某个任务直到成功或超时；或者在多级嵌套循环中高效查找目标。
+- **学习目标**: 掌握 `if-elif-else` 的短路逻辑，熟练运用 `for-else` 搜索模式，并掌握 Python 3.10+ 的结构化模式匹配 (`match-case`)。
+- **前置知识**: [核心容器](./collections.md)。
 
-## 语法规则
-- `if/elif/else` 按顺序匹配第一个满足条件的分支。
-- `while` 适合“满足条件就继续”的场景，循环变量必须能趋近结束条件。
-- `for` 适合遍历可迭代对象，配合 `range()` 能完成绝大多数计数循环。
-- `break` 会提前结束循环，`continue` 会跳过本轮剩余逻辑，`else` 只会在循环未被 `break` 打断时执行。
+## 核心结论
+- **短路逻辑**: `if A or B` 如果 A 为真，B 将不再执行。这常用于防御式编程（如检查对象是否为 None 再访问属性）。
+- **Else 子句**: `for-else` 的 `else` 块只有在循环**正常结束**（未触发 `break`）时才会运行。
+- **Match-Case**: 这是处理复杂条件分支（如状态分发）的最优选，支持模式解构和守卫条件。
+
+## 原理拆解
+- **迭代器协议**: `for` 循环底层通过调用 `iter()` 获取迭代器，并不断调用 `next()` 直到捕获 `StopIteration`。
+- **真值测试**: Python 中 `0`, `""`, `[]`, `{}`, `None` 均为假 (False)，其余多为真。
+
+## 官方文档与兼容性
+| 规则名称 | 官方出处 | PEP 链接 | 兼容性 |
+| :--- | :--- | :--- | :--- |
+| 控制流教程 | [More Control Flow Tools](https://docs.python.org/3/tutorial/controlflow.html) | N/A | Python 1.0+ |
+| 模式匹配 | [Structural Pattern Matching](https://docs.python.org/3/reference/compound_stmts.html#match) | [PEP 634](https://peps.python.org/pep-0634/) | Python 3.10+ |
+| `for-else` | [The for statement](https://docs.python.org/3/reference/compound_stmts.html#the-for-statement) | N/A | Python 1.0+ |
 
 ## 代码示例
-### 示例 1：条件分支
 
-```python hl_lines="3 5 7"
-response_time = 320
+### 示例 1：智能轮询与 `while-else` (Timeout)
+模拟等待后台任务完成，结合 `break` 和 `else` 区分“成功退出”与“超时失败”。
 
-if response_time < 200:
-    level = "fast"
-elif response_time < 500:
-    level = "acceptable"
-else:
-    level = "slow"
+```python
+import time
+import random
 
-print(level)
+def poll_task_status(max_retries=5):
+    """
+    演示 while-else：如果循环正常耗尽（即超时），执行 else 逻辑。
+    """
+    retries = 0
+    while retries < max_retries:
+        # 模拟状态检查
+        status = random.choice(["PENDING", "RUNNING", "SUCCESS"])
+        print(f"Retry {retries}: Status is {status}")
+        
+        if status == "SUCCESS":
+            print("Task completed successfully!")
+            break # 正常退出循环，跳过 else
+        
+        retries += 1
+        time.sleep(0.01)
+    else:
+        # 只有在 while 条件变为假（即达到 max_retries）时才执行
+        raise TimeoutError("Task timed out after maximum retries")
+
+# poll_task_status()
 ```
 
+### 示例 2：结构化模式匹配 (Match-Case)
+处理复杂的 API 响应分发，支持多值匹配和守卫。
 
-### 示例 2：`for` + `range`
+```python
+def handle_api_response(response: dict):
+    """
+    Python 3.10+ match-case 示例。
+    """
+    match response:
+        case {"status": 200, "data": data}:
+            return f"Success with: {data}"
+        case {"status": 401 | 403}:
+            return "Auth Error: Access Denied"
+        case {"status": code} if code >= 500:
+            return f"Server Error: {code}"
+        case _:
+            return "Unknown Response Format"
 
-```python hl_lines="2 3"
-total = 0
-for number in range(1, 6):
-    total += number
-print(total)
+# 验证
+print(handle_api_response({"status": 200, "data": "OK"}))
+assert "Auth Error" in handle_api_response({"status": 403})
 ```
 
+### 示例 3：双重循环下的 `continue` 与 `break`
+演示在处理测试矩阵（环境 x 用例）时如何跳过特定组合。
 
-### 示例 3：`for-else`
+```python
+envs = ["dev", "test", "prod"]
+cases = ["smoke", "stress", "perf"]
 
-```python hl_lines="3 6 8"
-users = ["alice", "bob", "charlie"]
+results = []
+for env in envs:
+    if env == "prod":
+        continue # 生产环境不跑这些实验性用例
+        
+    for case in cases:
+        if env == "dev" and case == "perf":
+            break # 开发环境不跑性能测试，跳出内层循环
+        results.append(f"{env}_{case}")
 
-for user in users:
-    if user == "dora":
-        print("found")
-        break
-else:
-    print("not found")
+print(f"Matrix run: {results}")
+assert "prod_smoke" not in results
 ```
 
-## 易错点
-- `while True` 写得很顺手，但如果没有清晰退出条件，就很容易写出死循环。
-- 在遍历列表时直接删除元素，会改变索引和长度，常导致漏处理数据。
-- 很多人把 `for-else` 误解成“循环结束后总会执行 else”，其实只有没有被 `break` 打断时才会进 else。
+## 性能基准测试
+对比不同循环方式在大数据量下的执行效率。
 
-## 小练习
-1. 遍历 1 到 20，打印所有能被 3 整除但不能被 2 整除的数字。
-2. 写一个 `while` 循环，把字符串列表中长度小于 3 的元素过滤掉。
-3. 使用 `for-else` 判断某个用户名是否存在于用户列表里。
+```python
+import timeit
 
-完成后再对照“参考答案”和“Self-Check”复盘。
+data = list(range(10000))
+
+def loop_filter():
+    res = []
+    for x in data:
+        if x % 2 == 0: res.append(x)
+    return res
+
+def comp_filter():
+    return [x for x in data if x % 2 == 0]
+
+t_loop = timeit.timeit(loop_filter, number=1000)
+t_comp = timeit.timeit(comp_filter, number=1000)
+
+print(f"Standard Loop: {t_loop:.4f}s")
+print(f"Comprehension: {t_comp:.4f}s")
+print(f"Efficiency gain: {(t_loop - t_comp) / t_loop * 100:.1f}%")
+```
+
+## 易错点与最佳实践
+| 特性 | 常见陷阱 | 最佳实践 |
+| :--- | :--- | :--- |
+| **可变性** | 在 `for` 循环中通过 `remove()` 修改正在遍历的列表。 | 遍历副本 `for x in data[:]` 或使用推导式。 |
+| **死循环** | `while True` 忘记更新条件变量。 | 始终结合 `timeout` 或计数器机制。 |
+| **else 误区** | 认为 `if-else` 的 `else` 和 `for-else` 逻辑一样。 | 记住 `for-else` 中的 `else` 是“无 break 补丁”。 |
 
 ## Self-Check
-### 概念题
-1. `for` 和 `while` 的选择标准是什么？
-2. `for-else` 的 `else` 到底在什么时候执行？
-3. 为什么流程控制里要特别关注“终止条件”？
-
-### 编程题
-1. 怎样用 `range()` 遍历 0 到 8 的偶数？
-2. 如何在遍历列表时安全过滤元素？
-
-### 实战场景
-1. 你在轮询接口状态，直到任务完成或超时，该用什么流程结构更合适？
-
-先独立作答，再对照下方的“参考答案”和对应章节复盘。
-
-## 参考答案
-### 概念题 1
-当你知道要遍历一个集合或固定次数时优先用 `for`；当循环是否继续取决于动态条件时用 `while` 更自然。
-讲解回看: [语法规则](#语法规则)
-
-### 概念题 2
-只有循环正常结束且没有触发 `break` 时才执行；如果提前 `break`，`else` 不会运行。
-讲解回看: [代码示例](#代码示例)
-
-### 概念题 3
-因为边界不清晰时最常见的问题就是死循环、漏处理和分支覆盖不完整，这些都会直接影响测试脚本稳定性。
-讲解回看: [概念](#概念)
-
-### 编程题 1
-使用 `range(0, 10, 2)`。起点是 0，终点不包含 10，步长为 2。
-讲解回看: [语法规则](#语法规则)
-
-### 编程题 2
-优先创建新列表，例如列表推导式或结果列表累加，避免在遍历原列表时直接删除元素。
-讲解回看: [易错点](#易错点)
-
-### 实战场景 1
-通常用 `while`，因为是否继续轮询取决于接口返回状态和超时阈值。循环里应显式维护重试次数或截止时间。
-讲解回看: [概念](#概念)
+1. `if not my_list:` 这种写法相比 `if len(my_list) == 0:` 有什么优势？
+2. 为什么在 Python 3.10 之前，我们通常用字典来模拟 `switch-case`？
+3. `break` 只能跳出当前层循环吗？如何一次性跳出双重嵌套循环？（提示：通过异常或标志变量）。
 
 ## 参考链接
-- [Python 官方文档](https://docs.python.org/3/)
-- [本仓库知识模板](../../common/docs/template.md)
-
-## 版本记录
-- 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
+- [Control Flow Tools](https://docs.python.org/3/tutorial/controlflow.html)
+- [PEP 634: Structural Pattern Matching](https://peps.python.org/pep-0634/)
 
 ---
-[返回 Python 学习总览](../README.md)
+[版本记录](./control_flow.md) | [返回首页](../README.md)

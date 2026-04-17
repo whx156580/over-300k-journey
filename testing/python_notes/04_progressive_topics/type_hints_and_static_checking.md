@@ -6,7 +6,7 @@ stack: python
 level: advanced
 status: active
 tags: [python, typing, mypy, protocol, pydantic]
-updated: 2026-04-16
+updated: 2026-04-17
 ---
 
 ## 目录
@@ -26,7 +26,7 @@ updated: 2026-04-16
 - 测试框架、工具脚本和业务 SDK 一旦加上稳定的类型边界，重构与协作都会轻松很多。
 
 ## 学什么
-- `typing` 提供 `list[str]`、`Literal`、`TypedDict`、`Protocol`、`Callable` 等表达能力。
+- `typing` 提供 `List[str]`、`Literal`、`TypedDict`、`Protocol`、`Callable` 等表达能力；如果项目统一在 Python 3.9+，也可以使用 `list[str]` 这类内置泛型写法。
 - `mypy` 严格模式能在提交前发现返回值不匹配、可选值漏判空、接口不一致等问题。
 - `pydantic` 在运行时做结构化数据验证，与静态类型形成互补。
 
@@ -83,7 +83,7 @@ else:
 
 ```ini
 [mypy]
-python_version = 3.11
+python_version = 3.8
 strict = True
 warn_unused_ignores = True
 ```
@@ -149,6 +149,7 @@ warn_unused_ignores = True
 - [本仓库知识模板](../../common/docs/template.md)
 
 ## 版本记录
+- 2026-04-17: 补充 3.8+ 兼容说明，并把 `mypy` 示例基线调整为 Python 3.8。
 - 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
 
 ---

@@ -1,144 +1,147 @@
 ---
-title: 异常体系
+title: 异常体系 (Exception Handling)
 module: testing
 area: python_notes
 stack: python
 level: advanced
 status: active
-tags: [python, exception, raise-from, logging, error-handling]
-updated: 2026-04-16
+tags: [python, exception, raise-from, context-manager, error-handling]
+updated: 2026-04-17
 ---
 
 ## 目录
-- [概念](#概念)
-- [核心机制](#核心机制)
+- [背景](#背景)
+- [核心结论](#核心结论)
+- [原理拆解](#原理拆解)
+- [官方文档与兼容性](#官方文档与兼容性)
 - [代码示例](#代码示例)
-- [易错点](#易错点)
-- [小练习](#小练习)
+- [性能基准测试](#性能基准测试)
+- [易错点与最佳实践](#易错点与最佳实践)
 - [Self-Check](#Self-Check)
-- [参考答案](#参考答案)
 - [参考链接](#参考链接)
 - [版本记录](#版本记录)
 
-## 概念
-- 异常是 Python 里表达错误路径的正式机制，不是“程序崩了以后才会看到的附属产物”。
-- 设计异常时要考虑可读性、可恢复性和排障上下文，而不是只图省事地 `except Exception`。
-- 自定义异常和异常链能让定位问题时保留更多业务语义。
+## 背景
+- **问题场景**: 接口请求失败时需要区分“可重试错误”与“致命配置错误”，或者在多层调用中保留原始报错的上下文以便排障。
+- **学习目标**: 掌握异常链机制，能够设计符合业务语义的自定义异常类，并能高效利用 `traceback` 进行调试。
+- **前置知识**: [流程控制](../02_basic_syntax/control_flow.md)。
 
-## 核心机制
-- 内置异常按层级组织，`BaseException` 在最顶层，业务代码通常只处理 `Exception` 体系。
-- `raise` 抛出异常，`raise from` 用于显式建立异常链。
-- `try/except/else/finally` 分别用于捕获、正常分支、以及清理收尾。
-- 日志记录异常时优先使用 `logger.exception` 或 `exc_info=True`，不要吞掉关键信息。
+## 核心结论
+- **异常链**: 使用 `raise from` 显式链接异常，保留 `__cause__` 追踪原始根因。
+- **捕获策略**: 始终捕获具体的异常类（如 `ValueError`），严禁无脑 `except Exception: pass`。
+- **清理保障**: `finally` 块确保资源（文件、Socket）在报错时也能正常释放。
+
+## 原理拆解
+- **MRO 层级**: 所有异常继承自 `BaseException`。`Exception` 是应用级异常的基类，`SystemExit`/`KeyboardInterrupt` 直接继承自 `BaseException`。
+- **上下文传播**: 异常在未被捕获时会沿着调用栈向上传播，直到被处理或导致进程退出。
+
+## 官方文档与兼容性
+| 规则名称 | 官方出处 | PEP 链接 | 兼容性 |
+| :--- | :--- | :--- | :--- |
+| 异常层级 | [Built-in Exceptions](https://docs.python.org/3/library/exceptions.html) | N/A | Python 1.5+ |
+| 异常链 (raise from) | [The raise statement](https://docs.python.org/3/reference/simple_stmts.html#the-raise-statement) | [PEP 3134](https://peps.python.org/pep-3134/) | Python 3.0+ |
+| `ExceptionGroup` | [Exception groups](https://docs.python.org/3/library/exceptions.html#exception-groups) | [PEP 654](https://peps.python.org/pep-0654/) | Python 3.11+ |
 
 ## 代码示例
-### 示例 1：自定义异常
 
-```python hl_lines="1 6"
-class ValidationError(Exception):
-    """Raised when input payload is invalid."""
+### 示例 1：自定义异常体系与 `raise from`
+在复杂的测试框架中构建语义化的报错。
 
+```python
+class AppError(Exception):
+    """应用级异常基类"""
+    pass
 
-def validate_age(age: int) -> None:
-    if age < 0:
-        raise ValidationError("age must be non-negative")
+class DatabaseError(AppError):
+    """数据库操作异常"""
+    pass
 
-
-validate_age(1)
-print("ok")
-```
-
-
-### 示例 2：`raise from`
-
-```python hl_lines="4 5 10"
-def parse_port(value: str) -> int:
+def query_user(user_id: int):
     try:
-        return int(value)
-    except ValueError as error:
-        raise ValueError(f"invalid port: {value}") from error
-
-
-try:
-    parse_port("abc")
-except ValueError as exc:
-    print(type(exc.__cause__).__name__)
-```
-
-
-### 示例 3：日志记录最佳实践
-
-```python hl_lines="7 9"
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+        # 模拟底层连接失败
+        raise ConnectionError("Timeout on port 5432")
+    except ConnectionError as e:
+        # 显式建立异常链
+        raise DatabaseError(f"Failed to fetch user {user_id}") from e
 
 try:
-    raise RuntimeError("network timeout")
-except RuntimeError:
-    logger.exception("request failed")
+    query_user(1)
+except DatabaseError as err:
+    print(f"Captured: {err}")
+    print(f"Original cause: {err.__cause__}")
 ```
 
-## 易错点
-- 直接 `except Exception: pass` 会吞掉错误，让问题在更远的地方以更隐蔽的方式爆出来。
-- 把业务校验错误和系统错误混在同一个异常类型里，会让调用方难以决定是否可重试。
-- 日志里只记录“失败了”而不带异常栈，等于放弃了最重要的排障线索。
+### 示例 2：异常上下文管理器 (pytest-style)
+演示如何编写一个用于测试的断言上下文管理器。
 
-## 小练习
-1. 为配置加载逻辑定义一个自定义异常，表达“必填字段缺失”。
-2. 把底层 `KeyError` 包装成更易懂的业务异常，并保留原始异常链。
-3. 写一个 `try/except/finally` 示例，验证 finally 始终执行。
+```python
+import contextlib
 
+@contextlib.contextmanager
+def assert_raises(expected_exc):
+    try:
+        yield
+    except expected_exc:
+        print(f"Caught expected: {expected_exc.__name__}")
+    else:
+        raise AssertionError(f"Did not raise {expected_exc.__name__}")
 
-建议先手写一遍，再对照“参考答案”检查抽象边界是否清晰。
+with assert_raises(ValueError):
+    int("abc")
+```
+
+### 示例 3：异常组处理 (Python 3.11+)
+处理并发任务中可能同时抛出的多个异常。
+
+```python
+def run_concurrent_tasks():
+    # 模拟两个并发任务同时失败
+    excs = [ValueError("Invalid ID"), TypeError("Invalid type")]
+    raise ExceptionGroup("Multiple errors occurred", excs)
+
+try:
+    run_concurrent_tasks()
+except* ValueError as eg:
+    print(f"Handled ValueErrors: {len(eg.exceptions)}")
+except* TypeError as eg:
+    print(f"Handled TypeErrors: {len(eg.exceptions)}")
+```
+
+## 性能基准测试
+对比异常处理对正常流程的影响（仅在触发异常时有显著开销）。
+
+```python
+import timeit
+
+# 正常路径
+t_normal = timeit.timeit("int('123')", number=1000000)
+# 异常路径 (极其缓慢)
+t_except = timeit.timeit("""
+try:
+    int('abc')
+except ValueError:
+    pass
+""", number=100000) # 次数减小 10 倍
+
+print(f"Normal path: {t_normal:.4f}s")
+print(f"Exception path (10x scaled): {t_except * 10:.4f}s")
+```
+
+## 易错点与最佳实践
+| 特性 | 常见陷阱 | 最佳实践 |
+| :--- | :--- | :--- |
+| **过度捕获** | `except Exception` 捕获了不该处理的系统错误。 | 尽量精确捕获目标异常。 |
+| **信息丢失** | 直接 `raise NewError()` 丢弃了原始 traceback。 | 始终使用 `raise NewError() from e`。 |
+| **else 块缺失** | 在 try 块中放入太多代码，导致误捕获。 | 仅在 try 块放可能报错的代码，其余移入 `else`。 |
 
 ## Self-Check
-### 概念题
-1. 为什么业务代码通常只捕获 `Exception` 体系，而不去捕获 `BaseException`？
-2. `raise from` 相比直接重新抛异常，多了什么价值？
-3. 为什么“异常日志要带栈信息”是基本要求？
-
-### 编程题
-1. 如何把 `KeyError` 包装成更易懂的配置异常？
-2. 如何在记录日志时自动附带当前异常栈？
-
-### 实战场景
-1. 在自动化测试框架里，哪些异常应该被重试，哪些应该直接失败？
-
-先独立作答，再对照下方的“参考答案”和对应章节复盘。
-
-## 参考答案
-### 概念题 1
-因为 `BaseException` 还包含 `SystemExit`、`KeyboardInterrupt` 等系统级信号，业务代码不应该随意吞掉这些退出机制。
-讲解回看: [核心机制](#核心机制)
-
-### 概念题 2
-它显式保留了底层异常作为 `__cause__`，方便你同时看到业务语义和原始错误来源。
-讲解回看: [核心机制](#核心机制)
-
-### 概念题 3
-因为没有栈就很难知道错误是在哪一层、哪条路径发生的。只靠一条字符串日志通常无法复盘完整上下文。
-讲解回看: [概念](#概念)
-
-### 编程题 1
-在 `except KeyError as error` 中抛出自定义异常，并用 `raise ConfigError(...) from error` 保留原始因果关系。
-讲解回看: [代码示例](#代码示例)
-
-### 编程题 2
-在 `except` 块中调用 `logger.exception("...")`，或者 `logger.error("...", exc_info=True)`。
-讲解回看: [代码示例](#代码示例)
-
-### 实战场景 1
-网络抖动、临时超时等可恢复错误可以考虑重试；断言失败、数据不合法、配置缺失等确定性错误应直接失败并尽快暴露。
-讲解回看: [易错点](#易错点)
+1. `raise from None` 有什么特殊用途？
+2. 在 `finally` 块中使用 `return` 会产生什么副作用？
+3. `traceback.format_exc()` 与直接 `print(e)` 的区别是什么？
 
 ## 参考链接
-- [Python 官方文档](https://docs.python.org/3/)
-- [本仓库知识模板](../../common/docs/template.md)
-
-## 版本记录
-- 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
+- [Effective Python: Chapter 4 - Metaprogramming and Attributes](https://example.com)
+- [Python Traceback Module](https://docs.python.org/3/library/traceback.html)
 
 ---
-[返回 Python 学习总览](../README.md)
+[版本记录](./exceptions.md) | [返回首页](../README.md)

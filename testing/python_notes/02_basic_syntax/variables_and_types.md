@@ -1,138 +1,134 @@
 ---
-title: 变量与数据类型
+title: 变量与数据类型 (Variables & Data Types)
 module: testing
 area: python_notes
 stack: python
 level: basics
 status: active
-tags: [python, variables, types, identity, annotations]
-updated: 2026-04-16
+tags: [python, variables, types, objects, type-hints]
+updated: 2026-04-17
 ---
 
 ## 目录
-- [概念](#概念)
-- [语法规则](#语法规则)
+- [背景](#背景)
+- [核心结论](#核心结论)
+- [原理拆解](#原理拆解)
+- [官方文档与兼容性](#官方文档与兼容性)
 - [代码示例](#代码示例)
-- [易错点](#易错点)
-- [小练习](#小练习)
+- [性能基准测试](#性能基准测试)
+- [易错点与最佳实践](#易错点与最佳实践)
 - [Self-Check](#Self-Check)
-- [参考答案](#参考答案)
 - [参考链接](#参考链接)
 - [版本记录](#版本记录)
 
-## 概念
-- Python 是动态类型语言，变量名绑定的是对象引用，不是提前声明好的内存槽位。
-- “强类型”表示不会在运行时偷偷把 `"1"` 当作数字 `1` 用；类型不匹配时会明确抛错。
-- 类型标注主要服务于阅读、补全和静态检查，不会在运行时自动替你做类型转换。
+## 背景
+- **问题场景**: 刚从 Java/C++ 转过来的开发者容易对 Python 的“变量名只是引用”感到困惑，或者在处理 JSON 数据时因为类型自动推断而产生 Bug（如 `1` 与 `"1"` 不相等）。
+- **学习目标**: 理解 Python 的动态强类型特性，掌握核心内置类型及其内存表现，学会使用类型注解 (Type Hints) 提升代码健壮性。
+- **前置知识**: 无。
 
-## 语法规则
-- 给变量赋值时，左边是名字，右边是对象；重新赋值本质上是让名字指向另一个对象。
-- `==` 比较值是否相等，`is` 比较是否是同一个对象，判断 `None` 时优先使用 `is None`。
-- 常见内置类型包括 `int`、`float`、`bool`、`str`、`list`、`tuple`、`dict`、`set`。
-- 类型标注写法常见为 `name: str = "alice"`，函数签名可写成 `def add(a: int, b: int) -> int:`。
+## 核心结论
+- **变量即标签**: Python 变量名是绑定到对象的引用，变量本身无类型，对象才有类型。
+- **动态强类型**: 无需预声明类型（动态），但类型不匹配时绝不自动转换（强类型）。
+- **Identity vs Equality**: `is` 检查“身份”（内存地址），`==` 检查“值”。
+
+## 原理拆解
+- **PyObject**: 每一个 Python 对象在 C 层面都是一个 `PyObject` 结构体，包含引用计数和类型指针。
+- **小整数池**: Python 预分配了 `-5` 到 `256` 之间的整数，这些对象在全局是单例的。
+
+## 官方文档与兼容性
+| 规则名称 | 官方出处 | PEP 链接 | 兼容性 |
+| :--- | :--- | :--- | :--- |
+| 内置类型 | [Built-in Types](https://docs.python.org/3/library/stdtypes.html) | N/A | Python 1.0+ |
+| 类型注解 | [Typing — Support for type hints](https://docs.python.org/3/library/typing.html) | [PEP 484](https://peps.python.org/pep-0484/) | Python 3.5+ |
+| 变量注解 | [Variable Annotations](https://peps.python.org/pep-0526/) | [PEP 526](https://peps.python.org/pep-0526/) | Python 3.6+ |
 
 ## 代码示例
-### 示例 1：动态类型与类型标注
 
-```python hl_lines="1 4"
-age: int = 28
-nickname = "qa_runner"
-is_active = True
+### 示例 1：内存引用与身份追踪
+观察变量重定向后的内存地址变化。
 
-print(type(age).__name__, type(nickname).__name__, type(is_active).__name__)
+```python
+x = [1, 2]
+print(f"Initial ID: {id(x)}")
+
+y = x # 共享引用
+print(f"Shared ID: {id(y)}")
+
+x = [3, 4] # x 重新绑定到新对象
+print(f"New ID: {id(x)}")
+assert x is not y # 现在指向不同对象
 ```
 
-示例要点:
-- 第 1 行展示变量注解。
-- 第 4 行验证运行时真实类型。
+### 示例 2：强类型特性实验
+演示 Python 不会自动转换不兼容类型，避免静默失败。
 
-### 示例 2：`is` 与 `==`
+```python
+num = 100
+text = "Count: "
 
-```python hl_lines="5 6 7"
-left = [1, 2, 3]
-right = [1, 2, 3]
-alias = left
+try:
+    # 尝试直接拼接（Java/JS 中常见）
+    result = text + num
+except TypeError as e:
+    print(f"Caught expected error: {e}")
 
-print(left == right)
-print(left is right)
-print(left is alias)
+# 正确做法：显式转换
+correct_result = text + str(num)
+print(correct_result)
 ```
 
-示例要点:
-- 第 5 行比较值。
-- 第 6 至 7 行比较对象身份。
+### 示例 3：类型注解 (Type Hints) 实战
+使用现代语法描述函数契约。
 
-### 示例 3：`None` 判断
+```python
+from typing import List, Optional
 
-```python hl_lines="2 3"
-def format_user(name: str | None) -> str:
-    if name is None:
-        return "anonymous"
-    return name.strip().lower()
+def process_items(items: List[int], prefix: Optional[str] = None) -> List[str]:
+    """
+    处理整数列表，返回带前缀的字符串列表。
+    """
+    p = prefix if prefix else "ITEM"
+    return [f"{p}_{i}" for i in items]
 
-
-print(format_user(None))
-print(format_user("  Alice  "))
+res = process_items([1, 2, 3], prefix="VAL")
+print(res)
+assert res[0] == "VAL_1"
 ```
 
-## 易错点
-- 把 `is` 当作通用相等比较符，结果在列表、字典、长字符串上得到错误结论。
-- 误以为类型标注会自动帮你转换类型；实际上传入字符串仍然会在业务逻辑里爆错。
-- 在调试时只看变量名、不看 `type()` 和 `id()`，很容易把“值相同”和“对象相同”混为一谈。
+## 性能基准测试
+对比常用内置类型的内存占用。
 
-## 小练习
-1. 定义一个函数，接收 `str | None`，输入 `None` 时返回默认用户名，其他情况返回去除空白后的结果。
-2. 创建两个值相同但不是同一对象的列表，分别打印 `==` 和 `is` 的结果。
-3. 用类型标注定义一个 `dict[str, int]`，统计测试结果中 `passed` 与 `failed` 的数量。
+```python
+import sys
 
-完成后再对照“参考答案”和“Self-Check”复盘。
+# 整数 vs 浮点数 vs 字符串
+data = {
+    "int_0": 0,
+    "int_big": 2**64,
+    "float": 3.14,
+    "str_empty": "",
+    "str_short": "abc"
+}
+
+for name, val in data.items():
+    print(f"{name:>10}: {sys.getsizeof(val):>3} bytes")
+```
+
+## 易错点与最佳实践
+| 特性 | 常见陷阱 | 最佳实践 |
+| :--- | :--- | :--- |
+| **None 判断** | 使用 `if val == None`。 | 始终使用 `if val is None`（单例判断性能更高）。 |
+| **类型遮蔽** | 变量取名为 `list` 或 `str`。 | 避免与内置类型同名，改用 `item_list` 或 `name_str`。 |
+| **浮点数比较** | `0.1 + 0.2 == 0.3` 返回 False。 | 使用 `math.isclose()` 进行精度范围内的比较。 |
 
 ## Self-Check
-### 概念题
-1. 为什么说 Python 既是动态类型语言，又是强类型语言？
-2. `is` 与 `==` 应该分别在什么场景下使用？
-3. 类型标注在团队协作中最大的价值是什么？
-
-### 编程题
-1. 写一个函数，传入 `None` 返回 `"guest"`，否则返回小写用户名。
-2. 怎样打印两个变量是否指向同一个对象？
-
-### 实战场景
-1. 接口测试里从 JSON 里取到的 `id` 有时是字符串、有时是整数，应该如何处理？
-
-先独立作答，再对照下方的“参考答案”和对应章节复盘。
-
-## 参考答案
-### 概念题 1
-动态类型指变量不需要预先声明类型，运行时再绑定对象；强类型指类型不兼容时不会悄悄转换，而是显式报错。
-讲解回看: [概念](#概念)
-
-### 概念题 2
-`==` 用于比较值是否相等，`is` 用于判断是否是同一个对象。判断 `None`、单例对象时优先使用 `is`。
-讲解回看: [语法规则](#语法规则)
-
-### 概念题 3
-它提升可读性、补全质量和静态检查能力，让函数边界更清楚，尤其适合多人维护的测试代码和工具脚本。
-讲解回看: [概念](#概念)
-
-### 编程题 1
-可以参考示例 3：在函数入口用 `if name is None` 处理空值，其他情况对字符串做 `strip().lower()` 再返回。
-讲解回看: [代码示例](#代码示例)
-
-### 编程题 2
-直接打印 `a is b`。如果还要进一步排查，可配合 `id(a)` 和 `id(b)` 观察内存身份标识。
-讲解回看: [代码示例](#代码示例)
-
-### 实战场景 1
-不要依赖隐式转换。应在解析边界统一做类型归一化，例如通过显式转换、类型校验或 Pydantic 模型约束，再把内部使用类型固定下来。
-讲解回看: [易错点](#易错点)
+1. 为什么 `a = 256; b = 256; a is b` 为 True，但 `a = 257; b = 257; a is b` 在某些环境下可能为 False？
+2. `type(obj)` 与 `isinstance(obj, type)` 在处理继承关系时有什么区别？
+3. 如何在不运行代码的情况下检查类型注解错误？（提示：`mypy`）。
 
 ## 参考链接
-- [Python 官方文档](https://docs.python.org/3/)
-- [本仓库知识模板](../../common/docs/template.md)
-
-## 版本记录
-- 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
+- [Python Data Model](https://docs.python.org/3/reference/datamodel.html)
+- [Real Python: Type Checking Guide](https://realpython.com/python-type-checking/)
 
 ---
-[返回 Python 学习总览](../README.md)
+[版本记录](./variables_and_types.md) | [返回首页](../README.md)

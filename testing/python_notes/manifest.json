@@ -1,0 +1,558 @@
+{
+  "stages": [
+    {
+      "directory": "01_environment",
+      "title": "环境篇",
+      "goal": "配好解释器、依赖管理和 IDE 调试体验",
+      "duration": "4-6 小时",
+      "prerequisite": "基本命令行操作"
+    },
+    {
+      "directory": "02_basic_syntax",
+      "title": "基础语法篇",
+      "goal": "建立脚本结构、数据类型、流程控制、容器与函数基础",
+      "duration": "14-18 小时",
+      "prerequisite": "环境篇"
+    },
+    {
+      "directory": "03_advanced_syntax",
+      "title": "高级语法篇",
+      "goal": "掌握迭代、装饰、上下文、OOP、文件与结构化数据处理",
+      "duration": "18-24 小时",
+      "prerequisite": "基础语法篇"
+    },
+    {
+      "directory": "04_progressive_topics",
+      "title": "进阶专题篇",
+      "goal": "把 Python 能力落到正则、数据库、Web、采集、数据分析、机器学习、测试与项目交付",
+      "duration": "24-36 小时",
+      "prerequisite": "高级语法篇"
+    }
+  ],
+  "index_descriptions": {
+    "01_environment": [
+      {
+        "filename": "python_landscape_and_career_paths.md",
+        "description": "先建立能力地图，明确 Python 在不同岗位里的使用方式"
+      },
+      {
+        "filename": "python_version_management.md",
+        "description": "理清解释器、虚拟环境和版本切换"
+      },
+      {
+        "filename": "dependency_management.md",
+        "description": "解决安装依赖、锁版本、项目隔离的问题"
+      },
+      {
+        "filename": "ide_setup.md",
+        "description": "补齐编辑、运行、调试、格式化体验"
+      },
+      {
+        "filename": "environment_mini_projects.md",
+        "description": "把环境搭建变成可复现、可交接的动手闭环"
+      }
+    ],
+    "02_basic_syntax": [
+      {
+        "filename": "comments_and_input_output.md",
+        "description": "建立脚本最小闭环"
+      },
+      {
+        "filename": "variables_and_types.md",
+        "description": "理清对象、类型、可变性与命名习惯"
+      },
+      {
+        "filename": "operators_and_expressions.md",
+        "description": "掌握条件判断与计算表达"
+      },
+      {
+        "filename": "control_flow.md",
+        "description": "把 if / for / while / break / continue 用顺"
+      },
+      {
+        "filename": "strings_and_methods.md",
+        "description": "处理文本、格式化、切片和编码"
+      },
+      {
+        "filename": "collections.md",
+        "description": "理解最常用容器及其适用边界"
+      },
+      {
+        "filename": "comprehensions_and_generator_expressions.md",
+        "description": "补齐推导式、生成器表达式和惰性迭代的常用写法"
+      },
+      {
+        "filename": "slicing_unpacking_and_common_builtins.md",
+        "description": "把高频迭代写法、排序与聚合判断补成常用工具层"
+      },
+      {
+        "filename": "mutability_and_copying.md",
+        "description": "理清引用共享、复制语义和嵌套对象修改边界"
+      },
+      {
+        "filename": "function_basics.md",
+        "description": "进入参数、返回值、作用域与函数化封装"
+      },
+      {
+        "filename": "basic_syntax_mini_projects.md",
+        "description": "把变量、循环、容器和函数串成能跑的小工具"
+      }
+    ],
+    "03_advanced_syntax": [
+      {
+        "filename": "modules_and_packages.md",
+        "description": "把代码从单文件脚本升级为可组织的结构"
+      },
+      {
+        "filename": "iterators_and_generators.md",
+        "description": "理解惰性求值与迭代协议"
+      },
+      {
+        "filename": "functional_programming_and_recursion.md",
+        "description": "补齐抽象能力与函数式思维"
+      },
+      {
+        "filename": "decorators.md",
+        "description": "理解横切逻辑与函数增强"
+      },
+      {
+        "filename": "context_managers.md",
+        "description": "学会把资源申请与释放写稳"
+      },
+      {
+        "filename": "file_io_and_pathlib.md",
+        "description": "进入真实文件系统和路径处理"
+      },
+      {
+        "filename": "structured_data_formats.md",
+        "description": "进入结构化数据交换"
+      },
+      {
+        "filename": "dataclasses_and_enum.md",
+        "description": "提升数据表达清晰度，减少裸字典和魔法字符串"
+      },
+      {
+        "filename": "bytes_encoding_and_text_files.md",
+        "description": "理解文本、字节流和文件编码之间的边界"
+      },
+      {
+        "filename": "object_oriented_programming.md",
+        "description": "理解类、对象、继承、封装与多态"
+      },
+      {
+        "filename": "exceptions.md",
+        "description": "补齐错误处理、排障与失败边界"
+      },
+      {
+        "filename": "breakpoint_and_pdb_basics.md",
+        "description": "补齐从 print 到断点调试的交互式定位能力"
+      },
+      {
+        "filename": "advanced_syntax_mini_projects.md",
+        "description": "把模块、生成器和结构化对象练进小型工程脚手架"
+      },
+      {
+        "filename": "metaprogramming_and_descriptors.md",
+        "description": "理解 __new__、元类与描述符协议的底层魔法"
+      }
+    ],
+    "04_progressive_topics": [
+      {
+        "filename": "python_re.md",
+        "description": "处理文本匹配、提取与替换"
+      },
+      {
+        "filename": "python_keywords.md",
+        "description": "对语言关键字做统一回顾"
+      },
+      {
+        "filename": "standard_library_toolbox.md",
+        "description": "补齐日常脚本最常用工具箱"
+      },
+      {
+        "filename": "configuration_and_secrets_management.md",
+        "description": "管理多环境配置和敏感信息边界"
+      },
+      {
+        "filename": "python_security_basics.md",
+        "description": "补齐输入边界、密钥管理、注入和路径安全的基础意识"
+      },
+      {
+        "filename": "python_security_advanced.md",
+        "description": "补齐反序列化、命令执行、供应链与审计治理的进阶视角"
+      },
+      {
+        "filename": "debugging_and_troubleshooting.md",
+        "description": "建立排障证据链和最小复现思维"
+      },
+      {
+        "filename": "common_python_pitfalls_checklist.md",
+        "description": "把高频坑位收成排查、复盘和 code review 清单"
+      },
+      {
+        "filename": "http_client_and_api_integration.md",
+        "description": "把请求调用从“能发”提升到“更稳定可控”"
+      },
+      {
+        "filename": "logging_and_cli_automation.md",
+        "description": "让脚本更像可复用工具"
+      },
+      {
+        "filename": "observability_logging_metrics_tracing.md",
+        "description": "补齐日志、指标与链路追踪三件套的协作视角"
+      },
+      {
+        "filename": "linux_shell_for_python.md",
+        "description": "学会在真实运行环境里排障与协作"
+      },
+      {
+        "filename": "python_concurrency.md",
+        "description": "理解线程、进程、协程和适用边界"
+      },
+      {
+        "filename": "asyncio_advanced_patterns.md",
+        "description": "补齐真实异步任务中的取消、背压和资源治理"
+      },
+      {
+        "filename": "office_and_document_automation.md",
+        "description": "进入测试报告和办公自动化场景"
+      },
+      {
+        "filename": "relational_databases_and_sql.md",
+        "description": "打稳数据模型、SQL 和索引基础"
+      },
+      {
+        "filename": "python_database_programming.md",
+        "description": "把 Python 和数据库真正连起来"
+      },
+      {
+        "filename": "sqlalchemy_and_alembic.md",
+        "description": "补齐 ORM、事务边界和迁移治理能力"
+      },
+      {
+        "filename": "web_frontend_and_http_basics.md",
+        "description": "理解请求、响应、页面和协议边界"
+      },
+      {
+        "filename": "web_frameworks_and_api_delivery.md",
+        "description": "进入接口服务、缓存、异步任务与上线"
+      },
+      {
+        "filename": "fastapi_and_asgi_delivery.md",
+        "description": "补齐现代 Python API 服务的常见交付路径"
+      },
+      {
+        "filename": "fastapi_advanced_patterns.md",
+        "description": "补齐依赖注入、生命周期、异常治理与测试替身的实战模式"
+      },
+      {
+        "filename": "redis_celery_and_background_jobs.md",
+        "description": "补齐缓存、队列与后台任务的常见工程模式"
+      },
+      {
+        "filename": "data_collection_and_browser_automation.md",
+        "description": "进入采集、解析和浏览器自动化"
+      },
+      {
+        "filename": "data_analysis_and_visualization.md",
+        "description": "进入表格处理、聚合与图表表达"
+      },
+      {
+        "filename": "machine_learning_basics.md",
+        "description": "建立训练、验证、评估的最小闭环"
+      },
+      {
+        "filename": "python_profiling.md",
+        "description": "学会定位慢代码和资源瓶颈"
+      },
+      {
+        "filename": "memory_profiling_tracemalloc_gc.md",
+        "description": "补齐内存增长定位、快照对比与 GC 排障方法"
+      },
+      {
+        "filename": "memory_management_and_gc.md",
+        "description": "深入理解引用计数、分代回收与内存池机制"
+      },
+      {
+        "filename": "type_hints_and_static_checking.md",
+        "description": "提升可维护性和静态可见性"
+      },
+      {
+        "filename": "python_quality_toolchain.md",
+        "description": "把规范、测试和类型检查前移到本地与 CI"
+      },
+      {
+        "filename": "modern_python_tooling_uv_pdm_hatch_nox.md",
+        "description": "补齐现代 Python 工具链的选型与协作方式"
+      },
+      {
+        "filename": "testing_pyramid_and_pytest.md",
+        "description": "回到测试工程最核心的验证能力"
+      },
+      {
+        "filename": "testing_engineering_advanced.md",
+        "description": "把测试项目从“能跑”提升到“更稳、更可维护”"
+      },
+      {
+        "filename": "pytest_asyncio_and_property_based_testing.md",
+        "description": "补齐异步测试与性质测试的实战入口"
+      },
+      {
+        "filename": "packaging_and_publishing.md",
+        "description": "补齐包管理与分发视角"
+      },
+      {
+        "filename": "project_delivery_and_engineering_practice.md",
+        "description": "把代码真正带到上线和协作场景"
+      },
+      {
+        "filename": "progressive_topics_integrated_projects.md",
+        "description": "把接口、异步、测试、观测和交付串成综合项目训练"
+      },
+      {
+        "filename": "testing_development_capstone_projects.md",
+        "description": "按测试开发方向给出质量平台与自动化服务的综合项目题"
+      },
+      {
+        "filename": "data_capstone_projects.md",
+        "description": "按数据方向给出数据流程、质量监控与分析交付的综合项目题"
+      },
+      {
+        "filename": "platform_tools_capstone_projects.md",
+        "description": "按平台工具方向给出 CLI、任务平台与配置治理的综合项目题"
+      }
+    ]
+  },
+  "quick_start": [
+    {
+      "path": "01_environment/python_landscape_and_career_paths.md",
+      "description": "先看清 Python 能解决哪些工作问题，再决定后面的主攻方向。"
+    },
+    {
+      "path": "01_environment/python_version_management.md",
+      "description": "先把解释器、虚拟环境和版本切换这件事理顺。"
+    },
+    {
+      "path": "02_basic_syntax/comments_and_input_output.md",
+      "description": "进入最小脚本闭环，先能写、能跑、能看结果。"
+    },
+    {
+      "path": "02_basic_syntax/variables_and_types.md",
+      "description": "把最常用的数据表示方式和命名习惯打稳。"
+    },
+    {
+      "path": "02_basic_syntax/function_basics.md",
+      "description": "从“能写几行代码”进入“能组织一个小脚本”。"
+    }
+  ],
+  "recommended_first": [
+    {
+      "path": "01_environment/python_landscape_and_career_paths.md",
+      "description": "先知道 Python 在不同岗位里怎么用。"
+    },
+    {
+      "path": "01_environment/python_version_management.md",
+      "description": "先把解释器、虚拟环境和版本切换理顺。"
+    },
+    {
+      "path": "02_basic_syntax/comments_and_input_output.md",
+      "description": "先建立最小脚本闭环。"
+    },
+    {
+      "path": "02_basic_syntax/variables_and_types.md",
+      "description": "先把最常见的数据表示方式打稳。"
+    },
+    {
+      "path": "02_basic_syntax/function_basics.md",
+      "description": "先从“写几行代码”走到“组织一个小脚本”。"
+    },
+    {
+      "path": "04_progressive_topics/logging_and_cli_automation.md",
+      "description": "提前看看 Python 在真实工作里怎样长成可复用工具。"
+    }
+  ],
+  "supplement_checklist": [
+    "- [x] 初学者补充：新增 [切片、解包与高频内置函数](./02_basic_syntax/slicing_unpacking_and_common_builtins.md)，把 `slice`、解包、`enumerate()`、`zip()`、`sorted()`、`any()`、`all()` 这类高频能力单独讲透。",
+    "- [x] 初学者补充：新增 [可变性、浅拷贝与深拷贝](./02_basic_syntax/mutability_and_copying.md)，补齐初学者最容易踩坑的“共享引用”和复制语义。",
+    "- [x] 进阶语法补充：新增 [dataclass、Enum 与结构化建模](./03_advanced_syntax/dataclasses_and_enum.md)，把常见数据模型写法从“字典堆着用”升级到“结构化表达”。",
+    "- [x] 进阶语法补充：新增 [编码、bytes 与文本文件处理](./03_advanced_syntax/bytes_encoding_and_text_files.md)，补齐字符串、字节流、文件编码和文本边界。",
+    "- [x] 从业者补充：新增 [asyncio 进阶：取消、超时、队列与限流](./04_progressive_topics/asyncio_advanced_patterns.md)，把协程从“会用 `gather()`”推进到“能处理真实异步边界”。",
+    "- [x] 从业者补充：新增 [FastAPI、ASGI 与接口服务交付](./04_progressive_topics/fastapi_and_asgi_delivery.md)，补齐 Python 服务端在现代接口项目里的常见交付形态。",
+    "- [x] 初学者补充：新增 [推导式与生成器表达式](./02_basic_syntax/comprehensions_and_generator_expressions.md)，补齐从循环累加到声明式构造集合的常用写法。",
+    "- [x] 初学者补充：新增 [breakpoint / pdb 基础](./03_advanced_syntax/breakpoint_and_pdb_basics.md)，让排障能力从 `print()` 过渡到断点与单步调试。",
+    "- [x] 通用排障补充：新增 [常见 Python 坑位清单](./04_progressive_topics/common_python_pitfalls_checklist.md)，把可变默认值、闭包绑定、路径与时区等问题收成复盘清单。",
+    "- [x] 从业者补充：新增 [SQLAlchemy 与 Alembic](./04_progressive_topics/sqlalchemy_and_alembic.md)，补齐 ORM、事务和迁移治理的基本工作流。",
+    "- [x] 从业者补充：新增 [Redis、Celery 与后台任务](./04_progressive_topics/redis_celery_and_background_jobs.md)，补齐缓存、队列和异步任务的工程配合方式。",
+    "- [x] 从业者补充：新增 [可观测性：日志、指标与链路追踪](./04_progressive_topics/observability_logging_metrics_tracing.md)，补齐线上排障时最关键的三类信号。",
+    "- [x] 从业者补充：新增 [现代 Python 工具链：uv / pdm / hatch / nox](./04_progressive_topics/modern_python_tooling_uv_pdm_hatch_nox.md)，补齐项目初始化、运行矩阵和工具选型视角。",
+    "- [x] 从业者补充：新增 [pytest-asyncio 与性质测试](./04_progressive_topics/pytest_asyncio_and_property_based_testing.md)，补齐异步接口和边界输入的验证方法。",
+    "- [x] 从业者补充：新增 [内存分析：tracemalloc / gc](./04_progressive_topics/memory_profiling_tracemalloc_gc.md)，补齐对象增长定位和泄漏排查入口。",
+    "- [x] 从业者补充：新增 [Python 安全基础](./04_progressive_topics/python_security_basics.md)，补齐密钥管理、注入防护、路径边界和最小权限的最低防守动作。",
+    "- [x] 练习闭环补充：新增 [环境篇 Mini Projects](./01_environment/environment_mini_projects.md)，把解释器、虚拟环境和启动说明变成可复现练习。",
+    "- [x] 练习闭环补充：新增 [基础语法篇 Mini Projects](./02_basic_syntax/basic_syntax_mini_projects.md)，把变量、循环、字符串、容器和函数串成小工具训练。",
+    "- [x] 练习闭环补充：新增 [高级语法篇 Mini Projects](./03_advanced_syntax/advanced_syntax_mini_projects.md)，把模块拆分、生成器、dataclass 和错误处理落到项目骨架里。",
+    "- [x] 练习闭环补充：新增 [进阶专题篇 综合项目](./04_progressive_topics/progressive_topics_integrated_projects.md)，把接口、异步、观测、测试和交付串成完整练习路线。",
+    "- [x] 从业者补充：新增 [FastAPI 进阶模式](./04_progressive_topics/fastapi_advanced_patterns.md)，把依赖注入、生命周期、异常治理和测试替身拉进真实服务骨架。",
+    "- [x] 从业者补充：新增 [Python 安全进阶](./04_progressive_topics/python_security_advanced.md)，把反序列化、命令执行、供应链和审计问题收成第二层防守清单。",
+    "- [x] Capstone 补充：新增 [测试开发方向 Capstone Projects](./04_progressive_topics/testing_development_capstone_projects.md)，把质量平台、smoke 服务和报告归档串成方向化综合项目。",
+    "- [x] Capstone 补充：新增 [数据方向 Capstone Projects](./04_progressive_topics/data_capstone_projects.md)，把数据流程、质量规则和分析交付串成方向化综合项目。",
+    "- [x] Capstone 补充：新增 [平台工具方向 Capstone Projects](./04_progressive_topics/platform_tools_capstone_projects.md)，把 CLI、任务平台和配置治理串成方向化综合项目。",
+    "- [ ] 深度补充：新增 [元编程与描述符协议](./03_advanced_syntax/metaprogramming_and_descriptors.md)，补齐底层机制剖析。",
+    "- [ ] 深度补充：新增 [内存管理与 GC 调优](./04_progressive_topics/memory_management_and_gc.md)，补齐内存模型与调优入口。",
+    "- [x] 结构修正：修复内容索引漏项，补回配置、调试、HTTP 客户端、质量工具链和测试工程进阶等专题入口。",
+    "- [x] 结构修正：修正总篇数统计，并同步 `Makefile` 入口说明，避免 README 与实际目录不一致。"
+  ],
+  "route_definitions": {
+    "测试开发路线": {
+      "audience": "做接口自动化、测试框架、平台工具、质量平台相关工作的同学。",
+      "core": [
+        "04_progressive_topics/standard_library_toolbox.md",
+        "04_progressive_topics/configuration_and_secrets_management.md",
+        "04_progressive_topics/python_security_basics.md",
+        "04_progressive_topics/python_security_advanced.md",
+        "04_progressive_topics/debugging_and_troubleshooting.md",
+        "04_progressive_topics/common_python_pitfalls_checklist.md",
+        "04_progressive_topics/http_client_and_api_integration.md",
+        "04_progressive_topics/logging_and_cli_automation.md",
+        "04_progressive_topics/observability_logging_metrics_tracing.md",
+        "04_progressive_topics/relational_databases_and_sql.md",
+        "04_progressive_topics/python_database_programming.md",
+        "04_progressive_topics/sqlalchemy_and_alembic.md",
+        "04_progressive_topics/web_frontend_and_http_basics.md",
+        "04_progressive_topics/web_frameworks_and_api_delivery.md",
+        "04_progressive_topics/fastapi_and_asgi_delivery.md",
+        "04_progressive_topics/fastapi_advanced_patterns.md",
+        "04_progressive_topics/redis_celery_and_background_jobs.md",
+        "04_progressive_topics/testing_pyramid_and_pytest.md",
+        "04_progressive_topics/testing_engineering_advanced.md",
+        "04_progressive_topics/pytest_asyncio_and_property_based_testing.md",
+        "04_progressive_topics/python_quality_toolchain.md",
+        "04_progressive_topics/project_delivery_and_engineering_practice.md"
+      ],
+      "extra": [
+        "04_progressive_topics/linux_shell_for_python.md",
+        "04_progressive_topics/python_concurrency.md",
+        "04_progressive_topics/asyncio_advanced_patterns.md",
+        "04_progressive_topics/modern_python_tooling_uv_pdm_hatch_nox.md",
+        "04_progressive_topics/memory_profiling_tracemalloc_gc.md",
+        "04_progressive_topics/office_and_document_automation.md",
+        "04_progressive_topics/progressive_topics_integrated_projects.md",
+        "04_progressive_topics/testing_development_capstone_projects.md"
+      ],
+      "result": "能写稳脚本、能做接口联调、能搭基础测试工具和简单工程化交付链路。"
+    },
+    "平台工具路线": {
+      "audience": "做内部平台、CLI 工具、任务执行平台、配置治理或自动化基础设施的同学。",
+      "core": [
+        "04_progressive_topics/standard_library_toolbox.md",
+        "04_progressive_topics/configuration_and_secrets_management.md",
+        "04_progressive_topics/python_security_basics.md",
+        "04_progressive_topics/python_security_advanced.md",
+        "04_progressive_topics/logging_and_cli_automation.md",
+        "04_progressive_topics/observability_logging_metrics_tracing.md",
+        "04_progressive_topics/python_concurrency.md",
+        "04_progressive_topics/asyncio_advanced_patterns.md",
+        "04_progressive_topics/redis_celery_and_background_jobs.md",
+        "04_progressive_topics/python_quality_toolchain.md",
+        "04_progressive_topics/modern_python_tooling_uv_pdm_hatch_nox.md",
+        "04_progressive_topics/project_delivery_and_engineering_practice.md"
+      ],
+      "extra": [
+        "04_progressive_topics/fastapi_and_asgi_delivery.md",
+        "04_progressive_topics/fastapi_advanced_patterns.md",
+        "04_progressive_topics/packaging_and_publishing.md",
+        "04_progressive_topics/sqlalchemy_and_alembic.md",
+        "04_progressive_topics/platform_tools_capstone_projects.md"
+      ],
+      "result": "能沉淀可复用工具入口、任务执行边界、配置治理与最小审计链路。"
+    },
+    "数据方向路线": {
+      "audience": "做数据清洗、报表分析、ETL，或后续想转机器学习的同学。",
+      "core": [
+        "04_progressive_topics/python_re.md",
+        "04_progressive_topics/standard_library_toolbox.md",
+        "03_advanced_syntax/bytes_encoding_and_text_files.md",
+        "04_progressive_topics/relational_databases_and_sql.md",
+        "04_progressive_topics/python_database_programming.md",
+        "04_progressive_topics/data_analysis_and_visualization.md",
+        "04_progressive_topics/machine_learning_basics.md",
+        "04_progressive_topics/python_security_basics.md",
+        "04_progressive_topics/python_security_advanced.md"
+      ],
+      "extra": [
+        "04_progressive_topics/office_and_document_automation.md",
+        "04_progressive_topics/linux_shell_for_python.md",
+        "04_progressive_topics/web_frontend_and_http_basics.md",
+        "04_progressive_topics/python_profiling.md",
+        "04_progressive_topics/memory_profiling_tracemalloc_gc.md",
+        "04_progressive_topics/progressive_topics_integrated_projects.md",
+        "04_progressive_topics/data_capstone_projects.md"
+      ],
+      "result": "能完成 CSV / JSON / SQL 数据处理、分析脚本和最小建模闭环。"
+    },
+    "通用 Python 路线": {
+      "audience": "还没完全确定方向，但想先把语言和工程习惯打牢的同学。",
+      "core": [
+        "04_progressive_topics/standard_library_toolbox.md",
+        "04_progressive_topics/logging_and_cli_automation.md",
+        "04_progressive_topics/debugging_and_troubleshooting.md",
+        "04_progressive_topics/common_python_pitfalls_checklist.md",
+        "04_progressive_topics/linux_shell_for_python.md",
+        "04_progressive_topics/type_hints_and_static_checking.md",
+        "04_progressive_topics/python_quality_toolchain.md",
+        "04_progressive_topics/modern_python_tooling_uv_pdm_hatch_nox.md",
+        "04_progressive_topics/python_security_basics.md",
+        "04_progressive_topics/python_security_advanced.md",
+        "04_progressive_topics/packaging_and_publishing.md",
+        "04_progressive_topics/project_delivery_and_engineering_practice.md"
+      ],
+      "extra": [
+        "04_progressive_topics/web_frontend_and_http_basics.md",
+        "04_progressive_topics/relational_databases_and_sql.md",
+        "04_progressive_topics/data_analysis_and_visualization.md",
+        "04_progressive_topics/configuration_and_secrets_management.md",
+        "04_progressive_topics/memory_profiling_tracemalloc_gc.md",
+        "04_progressive_topics/progressive_topics_integrated_projects.md",
+        "04_progressive_topics/platform_tools_capstone_projects.md"
+      ],
+      "result": "能独立完成结构清晰、可运行、可排障、可交付的小型 Python 工程。"
+    }
+  },
+  "requirements": [
+    "pytest>=8.3,<9.0",
+    "pytest-cov>=5.0,<6.0",
+    "black>=24.4,<25.0",
+    "isort>=5.13,<6.0",
+    "flake8>=7.1,<8.0",
+    "mypy>=1.11,<2.0",
+    "pydantic>=2.8,<3.0",
+    "line-profiler>=4.1,<5.0",
+    "memory-profiler>=0.61,<1.0",
+    "objgraph>=3.6,<4.0"
+  ],
+  "makefile_lines": [
+    "PYTHON ?= python",
+    "PORT ?= 8000",
+    "",
+    ".PHONY: install serve test lint format check",
+    "",
+    "install:",
+    "\t$(PYTHON) -m pip install -r requirements.txt",
+    "",
+    "serve:",
+    "\t$(PYTHON) -m http.server $(PORT) -d .",
+    "",
+    "test:",
+    "\t$(PYTHON) -m pytest tests -q",
+    "",
+    "lint:",
+    "\t$(PYTHON) -m flake8 tests",
+    "\t$(PYTHON) -m mypy tests",
+    "",
+    "format:",
+    "\t$(PYTHON) -m isort tests",
+    "\t$(PYTHON) -m black tests",
+    "",
+    "check: test lint"
+  ]
+}

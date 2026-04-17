@@ -1,176 +1,187 @@
 ---
-title: 装饰器
+title: 装饰器 (Decorators)
 module: testing
 area: python_notes
 stack: python
 level: advanced
 status: active
-tags: [python, decorator, wraps, class-decorator, aop]
-updated: 2026-04-16
+tags: [python, decorator, wraps, closures, aop]
+updated: 2026-04-17
 ---
 
 ## 目录
-- [概念](#概念)
-- [核心机制](#核心机制)
+- [背景](#背景)
+- [核心结论](#核心结论)
+- [原理拆解](#原理拆解)
+- [官方文档与兼容性](#官方文档与兼容性)
 - [代码示例](#代码示例)
-- [易错点](#易错点)
-- [小练习](#小练习)
+- [性能基准测试](#性能基准测试)
+- [易错点与最佳实践](#易错点与最佳实践)
 - [Self-Check](#Self-Check)
-- [参考答案](#参考答案)
 - [参考链接](#参考链接)
 - [版本记录](#版本记录)
 
-## 概念
-- 装饰器本质上是“接收一个可调用对象并返回另一个可调用对象”的高阶函数。
-- 它非常适合横切关注点，例如日志、计时、重试、鉴权、缓存和埋点。
-- 理解闭包与调用顺序后，装饰器就不再神秘。
+## 背景
+- **问题场景**: 接口测试中需要统一处理重试、权限校验、耗时统计或结果缓存，而不希望侵入业务逻辑。
+- **学习目标**: 理解闭包机制，掌握函数装饰器与类装饰器，能够处理多层嵌套与参数传递。
+- **前置知识**: [函数基础](../02_basic_syntax/function_basics.md)、[闭包概念]。
 
-## 核心机制
-- `@decorator` 等价于 `func = decorator(func)`。
-- 无参装饰器直接接收函数；带参装饰器会多一层工厂函数。
-- `functools.wraps` 用于保留原函数名称、文档和签名元信息。
-- 多个装饰器时，靠近函数定义的那个先应用，调用时则从外到内进入、从内到外返回。
+## 核心结论
+- **本质**: 装饰器是返回可调用对象的高阶函数，遵循 `func = decorator(func)` 的等价替换。
+- **元信息**: 必须使用 `functools.wraps` 保留被装饰函数的签名与文档。
+- **应用顺序**: 多个装饰器应用时“由近及远”（从下往上），调用时“由外向内”（从上往下）。
+
+## 原理拆解
+- **闭包机制**: 装饰器利用闭包特性，将被装饰函数作为自由变量绑定在包装器函数中。
+- **语法糖**: `@` 符号仅是语法糖，底层逻辑是函数对象的引用替换。
+
+## 官方文档与兼容性
+| 规则名称 | 官方出处 | PEP 链接 | 兼容性 |
+| :--- | :--- | :--- | :--- |
+| 装饰器语法 | [Function definitions](https://docs.python.org/3/reference/compound_stmts.html#function-definitions) | [PEP 318](https://peps.python.org/pep-0318/) | Python 2.4+ |
+| 类装饰器 | [Class definitions](https://docs.python.org/3/reference/compound_stmts.html#class-definitions) | [PEP 3129](https://peps.python.org/pep-3129/) | Python 2.6+ |
+| `functools.wraps` | [functools 模块](https://docs.python.org/3/library/functools.html#functools.wraps) | N/A | Python 2.5+ |
 
 ## 代码示例
-### 示例 1：无参装饰器
 
-```python hl_lines="4 6 11"
+### 示例 1：带参数的智能重试装饰器 (函数式)
+在接口测试中，针对特定异常进行指数退避重试。
+
+```python
+import time
+import random
 from functools import wraps
+from typing import Callable, Any
 
-
-def trace(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        print(f"calling {func.__name__}")
-        return func(*args, **kwargs)
-    return wrapper
-
-
-@trace
-def add(left: int, right: int) -> int:
-    return left + right
-
-
-print(add(2, 3))
-```
-
-
-### 示例 2：带参装饰器
-
-```python hl_lines="4 5 8 15"
-from functools import wraps
-
-
-def repeat(times: int):
-    def decorator(func):
+def retry(max_attempts: int = 3, delay: float = 1.0):
+    """
+    带参数的重试装饰器。
+    """
+    def decorator(func: Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            result = None
-            for _ in range(times):
-                result = func(*args, **kwargs)
-            return result
+            attempts = 0
+            while attempts < max_attempts:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    attempts += 1
+                    if attempts == max_attempts:
+                        raise e
+                    # 指数退避 + 抖动
+                    sleep_time = delay * (2 ** (attempts - 1)) + random.uniform(0, 0.1)
+                    print(f"Retrying {func.__name__} ({attempts}/{max_attempts}) after {sleep_time:.2f}s...")
+                    time.sleep(sleep_time)
         return wrapper
     return decorator
 
+@retry(max_attempts=3, delay=0.1)
+def unstable_api():
+    if random.random() < 0.7:
+        raise ConnectionError("Network flaked")
+    return "Success"
 
-@repeat(3)
-def greet() -> str:
-    print("hello")
-    return "done"
-
-
-print(greet())
+print(unstable_api())
 ```
 
+### 示例 2：带状态的类装饰器 (统计调用频率)
+利用类实例存储装饰器的执行状态。
 
-### 示例 3：类装饰器与执行顺序图
+```python
+from functools import wraps
+from typing import Any, Callable
 
-```mermaid
-flowchart TD
-    A["@outer"] --> B["@inner"]
-    B --> C["target()"]
-    C --> D["inner wrapper"]
-    D --> E["outer wrapper"]
+class CallCounter:
+    """
+    类装饰器：记录函数被调用的总次数。
+    """
+    def __init__(self, func: Callable):
+        wraps(func)(self)
+        self.func = func
+        self.count = 0
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        self.count += 1
+        return self.func(*args, **kwargs)
+
+@CallCounter
+def process_data(data: str):
+    return f"processed {data}"
+
+process_data("A")
+process_data("B")
+print(f"Call count: {process_data.count}")
 ```
 
-```python hl_lines="5 6 10"
-class Prefix:
-    def __init__(self, text: str) -> None:
-        self.text = text
+### 示例 3：装饰器链与执行顺序
+演示多层装饰器下 `wraps` 和执行顺序的重要性。
 
-    def __call__(self, func):
-        def wrapper(*args, **kwargs):
-            return f"{self.text}:{func(*args, **kwargs)}"
-        return wrapper
+```python
+from functools import wraps
 
+def bold(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return f"<b>{func(*args, **kwargs)}</b>"
+    return wrapper
 
-@Prefix("tag")
-def status() -> str:
-    return "ok"
+def italic(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return f"<i>{func(*args, **kwargs)}</i>"
+    return wrapper
 
+@bold
+@italic
+def greet(name: str):
+    return f"Hello, {name}"
 
-print(status())
+# 调用逻辑：bold(italic(greet)) -> <b><i>Hello, Alice</i></b>
+print(greet("Alice"))
+assert greet.__name__ == "greet"
 ```
 
-## 易错点
-- 忘记使用 `@wraps`，会导致被装饰函数的名称、文档和调试信息丢失。
-- 多层装饰器嵌套时，如果不清楚调用顺序，很容易在重试、计时、日志上得到意外行为。
-- 把太多业务逻辑塞进装饰器，会让真实流程隐藏在语法糖背后，反而更难维护。
+## 性能基准测试
+使用 `timeit` 对比装饰器引入的调用开销。
 
-## 小练习
-1. 写一个计时装饰器，打印函数执行秒数。
-2. 写一个带参装饰器，只允许函数执行指定次数。
-3. 写一个类装饰器，为函数返回值自动加前缀。
+```python
+import timeit
 
+setup = """
+from functools import wraps
+def noop(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
 
-建议先手写一遍，再对照“参考答案”检查抽象边界是否清晰。
+def raw_func(x): return x
+@noop
+def decorated_func(x): return x
+"""
+
+raw_time = timeit.timeit("raw_func(1)", setup=setup, number=1000000)
+dec_time = timeit.timeit("decorated_func(1)", setup=setup, number=1000000)
+print(f"Raw function: {raw_time:.4f}s")
+print(f"Decorated function: {dec_time:.4f}s")
+print(f"Overhead per call: {(dec_time - raw_time) / 1000000 * 1e6:.2f}μs")
+```
+
+## 易错点与最佳实践
+| 特性 | 常见陷阱 | 最佳实践 |
+| :--- | :--- | :--- |
+| **元信息丢失** | 忘记使用 `@wraps`，导致 `help(func)` 或 `func.__name__` 指向包装器。 | 始终导入 `from functools import wraps` 并应用。 |
+| **参数泄露** | 在包装器中固定参数，导致无法支持可变长参数 `*args, **kwargs`。 | 包装器签名始终使用 `(*args, **kwargs)` 转发请求。 |
+| **类装饰器状态** | 类装饰器在类定义阶段就已实例化，状态是全局共享的。 | 如需每个实例独立状态，应在 `__get__` 中处理描述符逻辑。 |
 
 ## Self-Check
-### 概念题
-1. 装饰器语法糖展开后是什么形式？
-2. `wraps` 的主要作用是什么？
-3. 多层装饰器的调用顺序如何理解？
-
-### 编程题
-1. 怎样给任何函数添加统一日志而不改函数体？
-2. 带参装饰器为什么需要三层函数？
-
-### 实战场景
-1. 你要给所有接口调用函数统一加重试和耗时统计，为什么装饰器适合这个场景？
-
-先独立作答，再对照下方的“参考答案”和对应章节复盘。
-
-## 参考答案
-### 概念题 1
-`@decorator` 实际等价于 `target = decorator(target)`。理解这一点后，很多嵌套装饰器的行为就不难推导了。
-讲解回看: [核心机制](#核心机制)
-
-### 概念题 2
-它会把原函数的 `__name__`、`__doc__` 等元信息复制到包装函数上，方便调试、日志和反射工具使用。
-讲解回看: [核心机制](#核心机制)
-
-### 概念题 3
-应用时从下往上包裹，调用时从外层先进入，再逐层调用内层函数，最后再一层层返回。
-讲解回看: [代码示例](#代码示例)
-
-### 编程题 1
-定义一个装饰器，在包装函数里记录入参与返回值，再调用原函数并返回结果即可。
-讲解回看: [代码示例](#代码示例)
-
-### 编程题 2
-第一层接收装饰器参数，第二层接收被装饰函数，第三层是真正的运行时包装器，这样装饰器参数和函数调用参数才能分离。
-讲解回看: [核心机制](#核心机制)
-
-### 实战场景 1
-因为这类逻辑与业务本身是横切关注点。用装饰器可以把公共能力集中在一处实现，避免在每个函数里重复写相同模板代码。
-讲解回看: [概念](#概念)
+1. 如何编写一个既能作为 `@dec` 使用，也能作为 `@dec(params)` 使用的装饰器？
+2. 装饰器链中，靠近函数定义的装饰器先执行还是后执行？
+3. 在类方法上使用装饰器时，`self` 参数是如何通过装饰器传递的？
 
 ## 参考链接
-- [Python 官方文档](https://docs.python.org/3/)
-- [本仓库知识模板](../../common/docs/template.md)
-
-## 版本记录
-- 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
+- [Python Expert: Decorators Deep Dive](https://example.com)
+- [Fluent Python: Function as Objects](https://example.com)
 
 ---
-[返回 Python 学习总览](../README.md)
+[版本记录](./decorators.md) | [返回首页](../README.md)

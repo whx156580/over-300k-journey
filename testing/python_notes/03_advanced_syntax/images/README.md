@@ -3,12 +3,15 @@
 本目录用于保存该阶段笔记配套截图与示意图资源。
 
 命名约定:
-- `iterators_and_generators_01.png`
-- `decorators_01.png`
 - `context_managers_01.png`
-- `object_oriented_programming_01.png`
+- `decorators_01.png`
 - `exceptions_01.png`
+- `file_io_and_pathlib_01.png`
+- `functional_programming_and_recursion_01.png`
+- `iterators_and_generators_01.png`
 - `modules_and_packages_01.png`
+- `object_oriented_programming_01.png`
+- `structured_data_formats_01.png`
 
 建议规范:
 - PNG 格式

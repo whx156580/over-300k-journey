@@ -1,132 +1,155 @@
 ---
-title: 运算符与表达式
+title: 运算符与表达式深度解析 (Operators & Expressions)
 module: testing
 area: python_notes
 stack: python
 level: basics
 status: active
-tags: [python, operators, expressions, comparison, bitwise]
-updated: 2026-04-16
+tags: [python, operators, walrus, short-circuit, bitwise, logic]
+updated: 2026-04-17
 ---
 
 ## 目录
-- [概念](#概念)
-- [语法规则](#语法规则)
+- [背景](#背景)
+- [核心结论](#核心结论)
+- [原理拆解](#原理拆解)
+- [官方文档与兼容性](#官方文档与兼容性)
 - [代码示例](#代码示例)
-- [易错点](#易错点)
-- [小练习](#小练习)
+- [性能基准测试](#性能基准测试)
+- [易错点与最佳实践](#易错点与最佳实践)
 - [Self-Check](#Self-Check)
-- [参考答案](#参考答案)
 - [参考链接](#参考链接)
 - [版本记录](#版本记录)
 
-## 概念
-- 表达式是会产生值的代码片段，运算符决定这些值如何组合与计算。
-- 理解优先级、结合性和短路逻辑，比记忆所有符号本身更重要。
-- 位运算在权限标记、状态位、二进制协议解析中很常见，测试工程里也会遇到。
+## 背景
+- **问题场景**: 复杂的条件断言导致代码嵌套过深、或者由于忽视了 `and/or` 的短路特性导致空指针异常；在处理二进制协议或权限位时，由于不熟悉位运算导致代码逻辑臃肿。
+- **学习目标**: 掌握 Python 独特的链式比较与海象运算符，理解短路逻辑的性能与安全价值，精通位运算实现高效状态管理。
+- **前置知识**: [变量与数据类型](./variables_and_types.md)。
 
-## 语法规则
-- 算术、比较、逻辑和位运算都能出现在同一个表达式中，但复杂表达式建议加括号增强可读性。
-- 链式比较 `a < b < c` 会按数学语义求值，中间值只求一次。
-- `and`、`or` 具有短路特性，左侧已经足够决定结果时，右侧不会执行。
-- `&`、`|`、`^`、`~`、`<<`、`>>` 作用于整数的二进制位，不要与 `and`、`or` 混用。
+## 核心结论
+- **链式比较**: `a < b < c` 在 Python 中是合法的且高效的，等价于 `(a < b) and (b < c)` 但中间值只计算一次。
+- **短路逻辑**: `or` 会返回第一个真值，`and` 会返回第一个假值。利用此特性可简化 `None` 检查。
+- **海象运算符 (`:=`)**: 允许在表达式内进行赋值，大幅减少冗余的函数调用或重复解析。
+
+## 原理拆解
+- **优先级 (Precedence)**: 算术 > 位移 > 位与/或 > 比较 > 逻辑赋值。
+- **对象真值**: `bool()` 函数决定了表达式的流向。非空容器、非零数值均为 `True`。
+
+## 官方文档与兼容性
+| 规则名称 | 官方出处 | PEP 链接 | 兼容性 |
+| :--- | :--- | :--- | :--- |
+| 运算符优先级 | [Operator precedence](https://docs.python.org/3/reference/expressions.html#operator-precedence) | N/A | Python 1.0+ |
+| 海象运算符 | [Assignment Expressions](https://peps.python.org/pep-0572/) | [PEP 572](https://peps.python.org/pep-0572/) | Python 3.8+ |
+| 字典合并运算符 | [Mapping Union](https://peps.python.org/pep-0584/) | [PEP 584](https://peps.python.org/pep-0584/) | Python 3.9+ |
 
 ## 代码示例
-### 示例 1：链式比较
 
-```python hl_lines="2"
-score = 85
-result = 60 <= score < 90
-print(result)
+### 示例 1：链式比较与海象运算符实战
+演示如何简洁地解析数据并进行范围校验。
+
+```python
+import re
+
+def validate_data(raw_text: str):
+    """
+    演示海象运算符与链式比较。
+    """
+    # 匹配数字并直接赋值给 m
+    if (match := re.search(r"score=(\d+)", raw_text)):
+        score = int(match.group(1))
+        # 链式比较
+        if 0 <= score <= 100:
+            return f"Valid score: {score}"
+    return "Invalid input"
+
+# 验证
+print(validate_data("user_id=1, score=85"))
+assert "85" in validate_data("score=85")
 ```
 
+### 示例 2：逻辑短路与防御式编程
+利用 `and/or` 的短路特性避免异常。
 
-### 示例 2：短路逻辑
+```python
+def process_user(user_obj):
+    """
+    最佳实践：利用 and 短路防止访问 None 属性。
+    """
+    # 如果 user_obj 为 None，则不会尝试读取 .name，避免 AttributeError
+    name = user_obj and getattr(user_obj, 'name', 'Unknown')
+    
+    # 利用 or 设置默认值
+    display_name = name or "Guest"
+    return display_name
 
-```python hl_lines="6 7"
-def expensive_check() -> bool:
-    print("expensive_check called")
+# 验证
+print(f"User: {process_user(None)}")
+assert process_user(None) == "Guest"
+```
+
+### 示例 3：位运算权限系统
+使用位掩码 (Bitmask) 实现轻量级权限管理。
+
+```python
+class Permission:
+    NONE    = 0b0000
+    READ    = 0b0001
+    WRITE   = 0b0010
+    EXECUTE = 0b0100
+
+def check_permission():
+    # 组合权限：读 + 写
+    user_perm = Permission.READ | Permission.WRITE
+    
+    # 检查是否有写权限
+    has_write = (user_perm & Permission.WRITE) != 0
+    # 移除写权限
+    new_perm = user_perm ^ Permission.WRITE
+    
+    return has_write, new_perm
+
+has_w, p = check_permission()
+print(f"Has write? {has_w}, Remaining: {bin(p)}")
+assert has_w is True
+assert p == Permission.READ
+```
+
+## 性能基准测试
+对比逻辑短路与全量求值的开销（模拟昂贵检查）。
+
+```python
+import timeit
+
+def expensive_check():
+    # 模拟耗时 10ms
+    import time
+    time.sleep(0.01)
     return True
 
+# 情况 A: 短路跳过
+t1 = timeit.timeit("False and expensive_check()", globals=globals(), number=100)
+# 情况 B: 强制求值 (通过非短路位运算模拟，虽然不推荐这样写)
+t2 = timeit.timeit("False & (expensive_check() == True)", globals=globals(), number=100)
 
-print(False and expensive_check())
-print(True or expensive_check())
+print(f"Short-circuit: {t1:.6f}s")
+print(f"Full evaluation: {t2:.6f}s") # 显著更慢
 ```
 
-观察结果:
-- 这段代码不会打印 `expensive_check called`，因为两次都被短路了。
-
-### 示例 3：位运算
-
-```python hl_lines="5 7 8"
-READ = 0b001
-WRITE = 0b010
-EXECUTE = 0b100
-
-permission = READ | WRITE
-print(permission)
-print(permission & WRITE == WRITE)
-print(permission & EXECUTE == EXECUTE)
-```
-
-## 易错点
-- 把 `&` 当成逻辑与使用，尤其在布尔表达式里会让代码读起来非常危险。
-- 链式比较里夹带副作用函数虽然能运行，但会降低可读性，排查起来也困难。
-- 依赖 `and/or` 返回布尔值时容易踩坑，因为它们返回的是“最后一个被求值的对象”，不一定是 `True/False`。
-
-## 小练习
-1. 写一个表达式，判断温度是否处于 `[18, 26)` 区间。
-2. 定义 `ADMIN = 0b1000`、`EDITOR = 0b0100`，计算同时拥有两个权限的结果。
-3. 写一个函数，只有当 `debug` 为 `True` 时才调用代价较高的诊断函数。
-
-完成后再对照“参考答案”和“Self-Check”复盘。
+## 易错点与最佳实践
+| 特性 | 常见陷阱 | 最佳实践 |
+| :--- | :--- | :--- |
+| **混合逻辑** | 将 `&` (位与) 误用于 `if` 条件判断。 | 布尔逻辑仅使用 `and`, `or`, `not`。 |
+| **优先级模糊** | 编写 `x == a or b`（实际含义是 `(x == a) or b`）。 | 始终使用括号明确意图：`x in (a, b)`。 |
+| **真值歧义** | 认为 `if x:` 等同于 `if x is True:`。 | 区分“对象存在”与“布尔真”，数值 0 和空容器在 Python 中均为假。 |
 
 ## Self-Check
-### 概念题
-1. 什么是链式比较，它和 `a < b and b < c` 有什么差异？
-2. `and`、`or` 的短路机制有什么价值？
-3. 位运算最典型的工程用途是什么？
-
-### 编程题
-1. 如何判断一个整数权限集中是否包含 `WRITE` 位？
-2. 怎样写一个不会触发昂贵函数调用的布尔判断？
-
-### 实战场景
-1. 日志分析脚本里有一个 `parse()` 很慢，只在文件存在时才需要调用，表达式该怎么写？
-
-先独立作答，再对照下方的“参考答案”和对应章节复盘。
-
-## 参考答案
-### 概念题 1
-链式比较写成 `a < b < c`，语义更接近数学表达式，而且中间值只求一次，可读性通常也更好。
-讲解回看: [语法规则](#语法规则)
-
-### 概念题 2
-它可以避免不必要的计算，也常用于“前置条件通过后再执行昂贵逻辑”的场景，比如对象判空和延迟调用。
-讲解回看: [代码示例](#代码示例)
-
-### 概念题 3
-它常用于权限标记、状态位组合、协议解析、硬件寄存器控制等需要紧凑表达多个开关状态的场景。
-讲解回看: [概念](#概念)
-
-### 编程题 1
-使用按位与：`permission & WRITE == WRITE`。先取交集，再判断目标位是否完整保留。
-讲解回看: [代码示例](#代码示例)
-
-### 编程题 2
-把廉价条件写在左侧，例如 `debug and expensive_check()`。当 `debug` 为 `False` 时，右侧不会执行。
-讲解回看: [代码示例](#代码示例)
-
-### 实战场景 1
-可写成 `path.exists() and parse(path)`。这样文件不存在时就不会进入解析逻辑，同时表达式仍然保持简洁。
-讲解回看: [易错点](#易错点)
+1. `x = [] or [1]` 的结果是什么？为什么？
+2. 为什么位运算在处理嵌入式协议或大型位图时比普通列表更高效？
+3. `not a == b` 等价于 `(not a) == b` 还是 `not (a == b)`？
 
 ## 参考链接
-- [Python 官方文档](https://docs.python.org/3/)
-- [本仓库知识模板](../../common/docs/template.md)
-
-## 版本记录
-- 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
+- [Python Expressions Reference](https://docs.python.org/3/reference/expressions.html)
+- [Understanding the Walrus Operator](https://realpython.com/python-walrus-operator/)
 
 ---
-[返回 Python 学习总览](../README.md)
+[版本记录](./operators_and_expressions.md) | [返回首页](../README.md)

@@ -1,154 +1,168 @@
 ---
-title: 并发模型：线程、进程、协程与 GIL
+title: 并发模型 (Concurrency Models)
 module: testing
 area: python_notes
 stack: python
 level: advanced
 status: active
-tags: [python, concurrency, threading, asyncio, multiprocessing]
-updated: 2026-04-16
+tags: [python, concurrency, threading, multiprocessing, asyncio, gil]
+updated: 2026-04-17
 ---
 
 ## 目录
-- [为什么学](#为什么学)
-- [学什么](#学什么)
-- [怎么用](#怎么用)
-- [业界案例](#业界案例)
-- [延伸阅读](#延伸阅读)
+- [背景](#背景)
+- [核心结论](#核心结论)
+- [原理拆解](#原理拆解)
+- [官方文档与兼容性](#官方文档与兼容性)
+- [代码示例](#代码示例)
+- [性能基准测试](#性能基准测试)
+- [易错点与最佳实践](#易错点与最佳实践)
 - [Self-Check](#Self-Check)
-- [参考答案](#参考答案)
 - [参考链接](#参考链接)
 - [版本记录](#版本记录)
 
-## 为什么学
-- 测试工程会同时面对 I/O 密集型任务、CPU 密集型任务和高并发调度问题，单靠同步脚本很快就会遇到瓶颈。
-- 理解线程、进程、协程和 GIL 的边界，能帮助你选择正确模型，而不是盲目“并发化”。
-- 本节重点是“什么时候该用什么”，而不只是会写几个 API 调用。
+## 背景
+- **问题场景**: 自动化测试中需要并发运行数千个测试用例、处理大量日志解析、或者构建高并发的模拟服务端。
+- **学习目标**: 理解 GIL 的局限性，掌握线程、进程、协程的选型逻辑，能够处理并发中的资源竞争与同步问题。
+- **前置知识**: [函数基础](../02_basic_syntax/function_basics.md)、[异常处理](../03_advanced_syntax/exceptions.md)。
 
-## 学什么
-- 线程适合 I/O 密集型任务；进程适合 CPU 密集型任务；协程适合大量可挂起的异步 I/O 任务。
-- CPython 的 GIL 限制了同一进程内多个线程并行执行 Python 字节码，但不阻止 I/O 并发。
-- `multiprocessing`、`concurrent.futures`、`asyncio` 是最常见的三套工程化入口。
+## 核心结论
+- **线程 (Threading)**: 适合 I/O 密集型任务（如 HTTP 请求），受 GIL 限制无法利用多核 CPU。
+- **进程 (Multiprocessing)**: 适合 CPU 密集型任务（如复杂计算），拥有独立内存空间，利用多核。
+- **协程 (Asyncio)**: 适合极高并发的 I/O 任务，单线程内切换，开销极低，但需配合异步库。
 
-## 怎么用
-### 示例 1：ThreadPoolExecutor
+## 原理拆解
+- **GIL (Global Interpreter Lock)**: CPython 的全局解释器锁，确保同一时刻只有一个线程执行字节码。
+- **上下文切换**: 线程/进程切换由 OS 调度，协程切换由程序（事件循环）控制。
 
-```python hl_lines="5 9"
+## 官方文档与兼容性
+| 规则名称 | 官方出处 | PEP 链接 | 兼容性 |
+| :--- | :--- | :--- | :--- |
+| `threading` | [threading — Thread-based parallelism](https://docs.python.org/3/library/threading.html) | N/A | Python 1.5+ |
+| `multiprocessing` | [multiprocessing — Process-based parallelism](https://docs.python.org/3/library/multiprocessing.html) | [PEP 371](https://peps.python.org/pep-0371/) | Python 2.6+ |
+| `asyncio` | [asyncio — Asynchronous I/O](https://docs.python.org/3/library/asyncio.html) | [PEP 3156](https://peps.python.org/pep-3156/) | Python 3.4+ |
+| `TaskGroup` | [Task Groups](https://docs.python.org/3/library/asyncio-task.html#task-groups) | [PEP 654](https://peps.python.org/pep-0654/) | Python 3.11+ |
+
+## 代码示例
+
+### 示例 1：线程安全计数器 (Threading + Lock)
+演示多线程下的资源竞争及如何使用锁保证原子操作。
+
+```python
+import threading
 from concurrent.futures import ThreadPoolExecutor
-import time
 
+class SafeCounter:
+    def __init__(self):
+        self.value = 0
+        self._lock = threading.Lock()
 
-def fetch(name: str) -> str:
-    time.sleep(0.01)
-    return f"done:{name}"
+    def increment(self):
+        with self._lock:
+            # 临界区操作
+            curr = self.value
+            self.value = curr + 1
 
+counter = SafeCounter()
+with ThreadPoolExecutor(max_workers=10) as executor:
+    for _ in range(1000):
+        executor.submit(counter.increment)
 
-with ThreadPoolExecutor(max_workers=2) as executor:
-    results = list(executor.map(fetch, ["api", "ui", "perf"]))
-
-print(results)
+print(f"Final count: {counter.value}") # 应为 1000
 ```
 
+### 示例 2：海量数据并行处理 (Multiprocessing)
+利用进程池加速 CPU 密集型计算（如生成大量哈希）。
 
-### 示例 2：asyncio 事件循环
+```python
+import hashlib
+from multiprocessing import Pool, cpu_count
 
-```python hl_lines="4 8 12"
-import asyncio
-
-
-async def fetch(name: str) -> str:
-    await asyncio.sleep(0.01)
-    return f"async:{name}"
-
-
-async def main() -> None:
-    results = await asyncio.gather(fetch("a"), fetch("b"))
-    print(results)
-
-
-asyncio.run(main())
-```
-
-
-### 示例 3：进程池入口示意
-
-```python hl_lines="8 9"
-from concurrent.futures import ProcessPoolExecutor
-
-
-def square(value: int) -> int:
-    return value * value
-
+def heavy_compute(data: int) -> str:
+    """CPU 密集型：多次哈希计算"""
+    res = str(data)
+    for _ in range(10000):
+        res = hashlib.sha256(res.encode()).hexdigest()
+    return res
 
 if __name__ == "__main__":
-    with ProcessPoolExecutor(max_workers=2) as executor:
-        print(list(executor.map(square, [1, 2, 3])))
-else:
-    print("process example skipped in imported mode")
+    tasks = range(100)
+    with Pool(processes=cpu_count()) as pool:
+        results = pool.map(heavy_compute, tasks)
+    print(f"Computed {len(results)} hashes using {cpu_count()} cores.")
 ```
 
+### 示例 3：高并发异步请求 (Asyncio + Timeout)
+演示如何使用 `asyncio` 管理并发任务并设置超时。
 
-选型口诀:
-- I/O 密集：优先线程或协程。
-- CPU 密集：优先进程。
-- 数量巨大且大多在等待：优先协程。
+```python
+import asyncio
 
-## 业界案例
-- 批量接口巡检、批量页面冒烟、批量文件上传下载通常适合线程池或协程。
-- 压测数据预处理、日志大规模解析、图像对比等 CPU 密集任务更适合进程池。
-- 异步爬虫、消息消费、WebSocket 监听这类高连接数场景通常会选 asyncio。
+async def fetch_api(task_id: int, delay: float):
+    print(f"Task {task_id} starting...")
+    await asyncio.sleep(delay)
+    if delay > 2.0:
+        raise asyncio.TimeoutError(f"Task {task_id} exceeded time limit")
+    return f"Result {task_id}"
 
-## 延伸阅读
-- [asyncio 文档](https://docs.python.org/3/library/asyncio.html)
-- [concurrent.futures 文档](https://docs.python.org/3/library/concurrent.futures.html)
-- 选型时先看任务类型，再看团队维护成本和生态配套。
+async def main():
+    tasks = [
+        fetch_api(1, 1.0),
+        fetch_api(2, 3.0), # 故意超时
+    ]
+    # return_exceptions=True 允许部分失败不影响整体
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    print(f"Async Results: {results}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## 性能基准测试
+对比不同模型在 I/O 密集型任务中的表现。
+
+```python
+import time
+import threading
+import asyncio
+
+def io_bound_task():
+    time.sleep(0.1)
+
+async def async_io_task():
+    await asyncio.sleep(0.1)
+
+def test_threading():
+    threads = [threading.Thread(target=io_bound_task) for _ in range(50)]
+    start = time.perf_counter()
+    for t in threads: t.start()
+    for t in threads: t.join()
+    return time.perf_counter() - start
+
+async def test_asyncio():
+    start = time.perf_counter()
+    await asyncio.gather(*(async_io_task() for _ in range(50)))
+    return time.perf_counter() - start
+
+print(f"Threading time: {test_threading():.4f}s")
+print(f"Asyncio time: {asyncio.run(test_asyncio()):.4f}s")
+```
+
+## 易错点与最佳实践
+| 特性 | 常见陷阱 | 最佳实践 |
+| :--- | :--- | :--- |
+| **线程** | 在多线程中直接修改共享列表/字典，导致数据不一致。 | 始终使用 `threading.Lock` 或 `queue.Queue` 进行同步。 |
+| **进程** | 忘记在 Windows 下使用 `if __name__ == "__main__":` 保护。 | 必须使用入口保护，防止子进程递归导入。 |
+| **协程** | 在 `async` 函数中使用同步 `time.sleep()` 阻塞整个事件循环。 | 始终使用 `await asyncio.sleep()`。 |
 
 ## Self-Check
-### 概念题
-1. GIL 为什么不意味着“Python 线程没用”？
-2. 线程、进程、协程三者最核心的选择依据是什么？
-3. `asyncio` 的事件循环在做什么？
-
-### 编程题
-1. 如何快速把多个 I/O 任务并发执行起来？
-2. 为什么进程池示例常写在 `if __name__ == "__main__":` 里？
-
-### 实战场景
-1. 你要同时跑 300 个接口健康检查，每个请求都要等待网络返回，最先考虑哪种并发模型？
-
-先独立作答，再对照下方的“参考答案”和对应章节复盘。
-
-## 参考答案
-### 概念题 1
-因为 GIL 主要限制的是同一时刻执行 Python 字节码的线程数量，但 I/O 等待期间线程仍然可以切换，所以线程对 I/O 密集任务依然有效。
-讲解回看: [学什么](#学什么)
-
-### 概念题 2
-看任务是 I/O 密集还是 CPU 密集，以及任务规模和调用栈是否天然适合异步。线程偏 I/O，进程偏 CPU，协程偏海量可挂起 I/O。
-讲解回看: [学什么](#学什么)
-
-### 概念题 3
-它负责调度协程，在它们遇到 `await` 可挂起点时切换执行，让单线程也能高效处理大量并发 I/O 任务。
-讲解回看: [怎么用](#怎么用)
-
-### 编程题 1
-同步代码可先用 `ThreadPoolExecutor`；异步代码可用 `asyncio.gather()` 同时等待多个协程结果。
-讲解回看: [怎么用](#怎么用)
-
-### 编程题 2
-尤其在 Windows 上，子进程会重新导入主模块。加这层保护可以避免递归创建进程和入口重复执行。
-讲解回看: [怎么用](#怎么用)
-
-### 实战场景 1
-优先考虑线程池或 asyncio，因为这类任务主要卡在网络 I/O。是否选协程，再看现有代码栈是不是异步友好。
-讲解回看: [业界案例](#业界案例)
+1. 为什么计算密集型任务在 Python 线程中运行可能比单线程还慢？
+2. `asyncio.gather` 与 `asyncio.wait` 的主要区别是什么？
+3. 如何在进程间共享大型 NumPy 数组而无需复制内存？
 
 ## 参考链接
-- [Python 官方文档](https://docs.python.org/3/)
-- [本仓库知识模板](../../common/docs/template.md)
-
-## 版本记录
-- 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
+- [Python Concurrency Docs](https://docs.python.org/3/library/concurrency.html)
+- [Modern Asyncio with Python 3.11+](https://example.com)
 
 ---
-[返回 Python 学习总览](../README.md)
+[版本记录](./python_concurrency.md) | [返回首页](../README.md)

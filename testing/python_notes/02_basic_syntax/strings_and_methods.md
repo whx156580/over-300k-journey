@@ -1,128 +1,141 @@
 ---
-title: 字符串与常用方法
+title: 字符串处理与常用方法 (String Processing)
 module: testing
 area: python_notes
 stack: python
 level: basics
 status: active
-tags: [python, string, f-string, slice, raw-string]
-updated: 2026-04-16
+tags: [python, string, f-string, slice, unicode, performance]
+updated: 2026-04-17
 ---
 
 ## 目录
-- [概念](#概念)
-- [语法规则](#语法规则)
+- [背景](#背景)
+- [核心结论](#核心结论)
+- [原理拆解](#原理拆解)
+- [官方文档与兼容性](#官方文档与兼容性)
 - [代码示例](#代码示例)
-- [易错点](#易错点)
-- [小练习](#小练习)
+- [性能基准测试](#性能基准测试)
+- [易错点与最佳实践](#易错点与最佳实践)
 - [Self-Check](#Self-Check)
-- [参考答案](#参考答案)
 - [参考链接](#参考链接)
 - [版本记录](#版本记录)
 
-## 概念
-- 字符串是不可变序列，绝大多数处理操作都会返回新字符串。
-- 切片、格式化与文本清洗是测试工程里最常见的字符串能力，比如日志处理、接口报文验证、文件路径处理。
-- 理解普通字符串、原始字符串、三引号字符串的边界，有助于减少转义错误。
+## 背景
+- **问题场景**: 在自动化测试中，我们需要从凌乱的日志中提取 TraceID、构建复杂的 JSON 请求报文、或者处理 Windows 环境下的反斜杠路径。
+- **学习目标**: 掌握字符串的不可变性，精通 f-string 高级格式化，能够利用切片和内置方法高效清洗文本。
+- **前置知识**: [变量与数据类型](./variables_and_types.md)。
 
-## 语法规则
-- 切片写法为 `text[start:stop:step]`，左闭右开。
-- 推荐优先使用 f-string 做字符串插值，可读性和性能通常都更好。
-- 原始字符串 `r"..."` 对正则、Windows 路径尤其友好，但末尾不能只有一个反斜杠。
-- 三引号字符串适合多行文本、SQL、文档字符串和复杂报文样例。
+## 核心结论
+- **不可变性**: 字符串一旦创建即不可更改，任何修改操作（如 `replace`）都会生成新对象。
+- **f-string 优选**: 自 Python 3.6 起，f-string 是最快且可读性最好的插值方式。
+- **编码意识**: Python 3 内部统一使用 Unicode (UTF-8)，处理字节流（如文件读取）需注意 `encode/decode`。
+
+## 原理拆解
+- **字符串驻留 (Interning)**: Python 内部会对短且符合标识符规则的字符串进行驻留，以节省内存并加速比较。
+- **内存模型**: 字符串作为序列，支持 $O(1)$ 复杂度的索引访问。
+
+## 官方文档与兼容性
+| 规则名称 | 官方出处 | PEP 链接 | 兼容性 |
+| :--- | :--- | :--- | :--- |
+| 字符串方法 | [String Methods](https://docs.python.org/3/library/stdtypes.html#string-methods) | N/A | Python 1.0+ |
+| f-string | [Literal String Interpolation](https://docs.python.org/3/reference/lexical_analysis.html#f-strings) | [PEP 498](https://peps.python.org/pep-0498/) | Python 3.6+ |
+| `str.removeprefix` | [Standard Library](https://docs.python.org/3/library/stdtypes.html#str.removeprefix) | [PEP 616](https://peps.python.org/pep-0616/) | Python 3.9+ |
 
 ## 代码示例
-### 示例 1：切片
 
-```python hl_lines="2 3 4"
-text = "playwright"
-print(text[:4])
-print(text[4:])
-print(text[::-1])
-```
+### 示例 1：f-string 高级格式化 (对齐与精度)
+在生成测试报告摘要时，控制输出的对齐格式。
 
+```python
+name = "Login_Test"
+passed = 42
+duration = 1.23456
 
-### 示例 2：f-string 与格式化
+# :<15 左对齐占 15 位, :>5 右对齐占 5 位, :.2f 保留两位小数
+summary = f"Case: {name:<15} | Status: {passed:>5} | Time: {duration:.2f}s"
 
-```python hl_lines="4"
-suite = "api"
-passed = 18
-failed = 2
-summary = f"{suite=} {passed=} {failed=}"
 print(summary)
+assert "1.23s" in summary
 ```
 
+### 示例 2：路径处理与 Raw String
+规避 Windows 路径中的转义字符陷阱。
 
-### 示例 3：原始字符串与三引号
+```python
+import os
 
-```python hl_lines="1 2 6 7"
-windows_path = r"C:\Users\qa\project"
-doc = """Line 1
-Line 2
-Line 3"""
+# 错误写法（会被识别为 \u 转义）: path = "C:\users\test" 
+# 正确做法：使用原始字符串 r""
+windows_path = r"C:\users\qa_tester\new_project"
 
-print(windows_path.endswith("project"))
-print(doc.splitlines()[1].strip())
+# 字符串切片：获取文件名
+filename = windows_path.split("\\")[-1]
+
+print(f"Full Path: {windows_path}")
+print(f"Target: {filename}")
+assert filename == "new_project"
 ```
 
-## 易错点
-- 误以为字符串是可变对象，直接按索引赋值会报错。
-- 原始字符串末尾单独放一个 `\` 会导致语法错误，因为转义仍然影响结束引号。
-- 在多层引号嵌套里忽略转义和引号配对，最容易让长 SQL 或 JSON 文本难以维护。
+### 示例 3：高效拼接 (Join vs +=)
+处理海量日志行时，对比两种拼接方式的效率。
 
-## 小练习
-1. 从 URL `https://example.com/orders/123` 中切出最后的订单号。
-2. 用 f-string 生成一条包含环境名、通过数、失败数的测试摘要。
-3. 写一个三引号字符串，保存一段 JSON 报文模板，并打印第二行内容。
+```python
+log_lines = ["INFO: start", "DEBUG: running", "INFO: end"]
 
-完成后再对照“参考答案”和“Self-Check”复盘。
+# 最佳实践：使用 .join()
+# 原理：预先计算总长度，一次性分配内存
+final_log = "\n".join(log_lines)
+
+# 常见陷阱：循环中使用 +=
+# 原理：每次都会创建新的字符串对象，复杂度 $O(n^2)$
+bad_log = ""
+for line in log_lines:
+    bad_log += line + "\n"
+
+assert final_log == bad_log.strip()
+```
+
+## 性能基准测试
+量化对比 `+` 拼接与 `.join()` 的性能差异。
+
+```python
+import timeit
+
+n = 5000
+parts = ["data"] * n
+
+def use_plus():
+    res = ""
+    for p in parts: res += p
+    return res
+
+def use_join():
+    return "".join(parts)
+
+t_plus = timeit.timeit(use_plus, number=100)
+t_join = timeit.timeit(use_join, number=100)
+
+print(f"Using '+': {t_plus:.4f}s")
+print(f"Using '.join()': {t_join:.4f}s")
+print(f"Join speedup: {t_plus/t_join:.1f}x")
+```
+
+## 易错点与最佳实践
+| 特性 | 常见陷阱 | 最佳实践 |
+| :--- | :--- | :--- |
+| **修改字符** | `s[0] = 'H'` 会抛出 TypeError。 | 使用切片重组：`'H' + s[1:]`。 |
+| **编码混淆** | 直接比较 `bytes` 和 `str`：`b"ok" == "ok"` 为 False。 | 比较前先进行 `decode('utf-8')`。 |
+| **前缀移除** | 使用 `strip('http://')` 会误删末尾的 'p'。 | Python 3.9+ 使用 `removeprefix()`。 |
 
 ## Self-Check
-### 概念题
-1. 为什么说字符串切片是左闭右开？
-2. 为什么推荐优先用 f-string？
-3. 原始字符串最适合什么场景？
-
-### 编程题
-1. 如何把字符串倒序输出？
-2. 怎样写一个包含多行内容的文档字符串？
-
-### 实战场景
-1. 你要解析 Windows 文件路径和正则表达式，为什么 raw-string 能明显降低出错率？
-
-先独立作答，再对照下方的“参考答案”和对应章节复盘。
-
-## 参考答案
-### 概念题 1
-因为 `start` 位置会被包含，`stop` 位置不会被包含，这和 `range()` 的规则一致，有助于组合与计算长度。
-讲解回看: [语法规则](#语法规则)
-
-### 概念题 2
-它更直观、可读性更高，也更容易就地展示变量名和值，非常适合调试输出和测试报告摘要。
-讲解回看: [语法规则](#语法规则)
-
-### 概念题 3
-适合包含大量反斜杠的文本，如正则表达式、Windows 路径、转义字符较多的模板。
-讲解回看: [概念](#概念)
-
-### 编程题 1
-使用切片 `text[::-1]`。步长为 `-1` 会从尾到头遍历字符串。
-讲解回看: [代码示例](#代码示例)
-
-### 编程题 2
-使用三引号字符串 `"""..."""` 或 `'''...'''`。如果在函数定义下方，解释器还会把它识别为 docstring。
-讲解回看: [代码示例](#代码示例)
-
-### 实战场景 1
-因为它减少了反斜杠转义层数，路径或正则会更接近原始写法，代码更容易审查，也不容易漏写转义。
-讲解回看: [易错点](#易错点)
+1. 为什么在大循环中使用 `+=` 拼接字符串会导致性能急剧下降？
+2. `r"\n"` 的长度是多少？`len(r"\n")` 的结果是什么？
+3. `f"{val=}"` 这个语法有什么调试收益？（Python 3.8+）。
 
 ## 参考链接
-- [Python 官方文档](https://docs.python.org/3/)
-- [本仓库知识模板](../../common/docs/template.md)
-
-## 版本记录
-- 2026-04-16: 初版整理，补齐示例、自测题与落地建议。
+- [Python Strings Tutorial](https://docs.python.org/3/tutorial/introduction.html#strings)
+- [Common String Operations](https://docs.python.org/3/library/string.html)
 
 ---
-[返回 Python 学习总览](../README.md)
+[版本记录](./strings_and_methods.md) | [返回首页](../README.md)

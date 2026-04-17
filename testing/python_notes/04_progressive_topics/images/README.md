@@ -3,13 +3,15 @@
 本目录用于保存该阶段笔记配套截图与示意图资源。
 
 命名约定:
-- `python_re_01.png`
-- `python_keywords_01.png`
-- `python_concurrency_01.png`
-- `python_profiling_01.png`
-- `type_hints_and_static_checking_01.png`
-- `testing_pyramid_and_pytest_01.png`
+- `logging_and_cli_automation_01.png`
 - `packaging_and_publishing_01.png`
+- `python_concurrency_01.png`
+- `python_keywords_01.png`
+- `python_profiling_01.png`
+- `python_re_01.png`
+- `standard_library_toolbox_01.png`
+- `testing_pyramid_and_pytest_01.png`
+- `type_hints_and_static_checking_01.png`
 
 建议规范:
 - PNG 格式

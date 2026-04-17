@@ -3,15 +3,15 @@
 本目录用于保存该阶段笔记配套截图与示意图资源。
 
 命名约定:
-- `python_version_management_01.png`
-- `python_version_management_02.png`
-- `python_version_management_03.png`
 - `dependency_management_01.png`
 - `dependency_management_02.png`
 - `dependency_management_03.png`
 - `ide_setup_01.png`
 - `ide_setup_02.png`
 - `ide_setup_03.png`
+- `python_version_management_01.png`
+- `python_version_management_02.png`
+- `python_version_management_03.png`
 
 建议规范:
 - PNG 格式

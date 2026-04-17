@@ -15,7 +15,7 @@
 
 | 模块 | 领域数 | 笔记数 | 入口 | 搜索示例 |
 | :--- | :--- | :--- | :--- | :--- |
-| `testing` | 7 | 40 | [进入模块](./testing/README.md) | `python scripts/search_knowledge.py playwright --module testing` |
+| `testing` | 7 | 89 | [进入模块](./testing/README.md) | `python scripts/search_knowledge.py playwright --module testing` |
 | `frontend` | 3 | 3 | [进入模块](./frontend/README.md) | `python scripts/search_knowledge.py react --module frontend` |
 | `backend` | 3 | 3 | [进入模块](./backend/README.md) | `python scripts/search_knowledge.py mysql --module backend` |
 | `ai` | 3 | 3 | [进入模块](./ai/README.md) | `python scripts/search_knowledge.py prompt --module ai` |
@@ -90,14 +90,14 @@ ai/
 
 | 标题 | 模块 | 领域 | 技术栈 | 更新时间 | 路径 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 类型提示与静态检查 | `testing` | `python_notes` | `python` | 2026-04-16 | [testing/python_notes/04_progressive_topics/type_hints_and_static_checking.md](./testing/python_notes/04_progressive_topics/type_hints_and_static_checking.md) |
-| 测试金字塔、pytest fixture、参数化与 CI | `testing` | `python_notes` | `python` | 2026-04-16 | [testing/python_notes/04_progressive_topics/testing_pyramid_and_pytest.md](./testing/python_notes/04_progressive_topics/testing_pyramid_and_pytest.md) |
-| 打包发布：setuptools、wheel、twine 与私有 PyPI | `testing` | `python_notes` | `python` | 2026-04-16 | [testing/python_notes/04_progressive_topics/packaging_and_publishing.md](./testing/python_notes/04_progressive_topics/packaging_and_publishing.md) |
-| 性能剖析 | `testing` | `python_notes` | `python` | 2026-04-16 | [testing/python_notes/04_progressive_topics/python_profiling.md](./testing/python_notes/04_progressive_topics/python_profiling.md) |
-| 并发模型：线程、进程、协程与 GIL | `testing` | `python_notes` | `python` | 2026-04-16 | [testing/python_notes/04_progressive_topics/python_concurrency.md](./testing/python_notes/04_progressive_topics/python_concurrency.md) |
-| Python 关键字全集 | `testing` | `python_notes` | `python` | 2026-04-16 | [testing/python_notes/04_progressive_topics/python_keywords.md](./testing/python_notes/04_progressive_topics/python_keywords.md) |
-| 正则表达式与 re 模块 | `testing` | `python_notes` | `python` | 2026-04-16 | [testing/python_notes/04_progressive_topics/python_re.md](./testing/python_notes/04_progressive_topics/python_re.md) |
-| 模块与包 | `testing` | `python_notes` | `python` | 2026-04-16 | [testing/python_notes/03_advanced_syntax/modules_and_packages.md](./testing/python_notes/03_advanced_syntax/modules_and_packages.md) |
+| Redis 缓存与 Celery 异步任务 (Background Jobs) | `testing` | `python_notes` | `python` | 2026-04-17 | [testing/python_notes/04_progressive_topics/redis_celery_and_background_jobs.md](./testing/python_notes/04_progressive_topics/redis_celery_and_background_jobs.md) |
+| SQLAlchemy ORM 与 Alembic 迁移 (DB Engineering) | `testing` | `python_notes` | `python` | 2026-04-17 | [testing/python_notes/04_progressive_topics/sqlalchemy_and_alembic.md](./testing/python_notes/04_progressive_topics/sqlalchemy_and_alembic.md) |
+| Asyncio 进阶：超时、限流与队列 (Asyncio Patterns) | `testing` | `python_notes` | `python` | 2026-04-17 | [testing/python_notes/04_progressive_topics/asyncio_advanced_patterns.md](./testing/python_notes/04_progressive_topics/asyncio_advanced_patterns.md) |
+| 高级语法篇 Mini Projects (Advanced Lab) | `testing` | `python_notes` | `python` | 2026-04-17 | [testing/python_notes/03_advanced_syntax/advanced_syntax_mini_projects.md](./testing/python_notes/03_advanced_syntax/advanced_syntax_mini_projects.md) |
+| 断点调试与 pdb 进阶 (Debugging & PDB) | `testing` | `python_notes` | `python` | 2026-04-17 | [testing/python_notes/03_advanced_syntax/breakpoint_and_pdb_basics.md](./testing/python_notes/03_advanced_syntax/breakpoint_and_pdb_basics.md) |
+| 函数式编程与递归 (Functional & Recursion) | `testing` | `python_notes` | `python` | 2026-04-17 | [testing/python_notes/03_advanced_syntax/functional_programming_and_recursion.md](./testing/python_notes/03_advanced_syntax/functional_programming_and_recursion.md) |
+| 文本编码与字节流 (Encoding & Bytes) | `testing` | `python_notes` | `python` | 2026-04-17 | [testing/python_notes/03_advanced_syntax/bytes_encoding_and_text_files.md](./testing/python_notes/03_advanced_syntax/bytes_encoding_and_text_files.md) |
+| 结构化建模进阶 (Dataclasses & Enum) | `testing` | `python_notes` | `python` | 2026-04-17 | [testing/python_notes/03_advanced_syntax/dataclasses_and_enum.md](./testing/python_notes/03_advanced_syntax/dataclasses_and_enum.md) |
 
 <!-- PORTAL:END -->
 
